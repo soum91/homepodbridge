@@ -1,9 +1,0 @@
-Package: com.soum91.homepodbridge
-Name: HomePod Bridge (Experimental)
-Version: 0.1.0
-Architecture: iphoneos-arm64
-Description: Experimental, reversible patch for HomePod mini 2 device recognition on iOS 16.1.1. Does not modify system binaries on disk.
-Maintainer: Soumen Saha Jyoti
-Author: Soumen Saha Jyoti
-Section: Tweaks
-Depends: firmware (>= 16.1), ellekit
