@@ -41,3 +41,13 @@ Once connected over USB, run the existing working `pymobiledevice3 syslog live` 
 Original extracted Mach-O SHA-256: `0ef19ac608379b89fc0eb93f190c5b4253ede0b88f44bf72e8f7ee0206e5eb91`
 
 The uploaded Apple binary and app assets are **not included** in this source package.
+
+## Sileo APT source
+
+Each successful GitHub Actions build publishes a flat APT repository in `docs/`, including the built `.deb`, `Packages`, `Packages.gz`, and `Release`. The GitHub Pages source is:
+
+`https://soum91.github.io/HomePodBridge/`
+
+To enable the source for the first time, the repo owner must visit **Settings → Pages**, select **Deploy from a branch**, choose **main** and **/docs**, then save. GitHub Pages may take a few minutes to deploy. The Sileo source is usable only once the `Release` URL responds successfully.
+
+The repository is currently unsigned. If Sileo rejects it for authentication or signature policy, use the directly downloaded `.deb` until a stable signing key and signed `Release` are configured.
