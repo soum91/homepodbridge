@@ -12,6 +12,6 @@
 - Fixed Sileo source refresh failure: include the mandatory `Components: main` field in `Release` metadata. Sileo's repository parser rejects a release without it.
 - Published a separate 0.1.0 Sileo APT mirror under `https://soum91.github.io/timbre/homepodbridge/`, using Timbre's existing active GitHub Pages site; the Pages deployment succeeded. Automatic updates to this mirror are not yet configured.
 - Created a standalone HomePodBridge `gh-pages` branch with the package and index at the site root; added build workflow publication to the branch. GitHub Pages activated automatically and the first deployment completed successfully.
-- Diagnosed the Sileo Pages 404 as a case-sensitive route mismatch: GitHub Pages serves `/HomePodBridge/Release` (HTTP 200) but not the lowercase `/homepodbridge/Release` (HTTP 404). Updated published instructions to the intended lowercase path; repository owner must rename the repository to `homepodbridge` to activate that URL.
+- Diagnosed the Sileo Pages 404 as a case-sensitive route mismatch: GitHub Pages serves `/HomePodBridge/Release` (HTTP 200) but not the lowercase `/homepodbridge/Release` (HTTP 404). Verified the correctly capitalized Release, Packages.gz, and .deb all return HTTP 200. Corrected the instructions to emphasize the exact mixed-case URL; no repository rename is required.
 
 **Status:** Source and static patch verified; a rootless ARM64e `.deb` has been compiled in GitHub Actions. The tweak has not been tested on the actual iPhone/HomePod combination yet.
