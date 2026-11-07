@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 - 2026-11-07
+
+- Confirmed from a real iPhone 13 Pro Max syslog capture that ElleKit loads `HomePodBridge 0.1.2` inside `HDSViewService`, but the signature guard refuses the patch because live memory differs from the original executable file.
+- Added read-only diagnostics on signature mismatch: log the loaded main executable path and the exact 20 live instruction bytes alongside the 20 expected bytes.
+- Retained the existing bundle/build/iOS checks and fail-closed behavior. This release deliberately does not change any patch offset or bypass the signature guard; HomePod pairing is not yet fixed.
+
 ## 0.1.2 - 2026-11-07
 
 - Reverted the `NSError` method hooks, limited error tracing, and Logos `%ctor` initialization added in 0.1.1 after the real iPhone 13 Pro Max test again showed the **Software Update** screen.

@@ -1,8 +1,8 @@
 Package: com.soum91.homepodbridge
 Name: HomePod Bridge (Experimental)
-Version: 0.1.2
+Version: 0.1.3
 Architecture: iphoneos-arm64
-Description: Reverted to the 0.1.0 HomePod mini 2 recognition patch on iOS 16.1.1 after 0.1.1 diagnostics regressed to an update popup. In-memory only.
+Description: Diagnostic release logging live HDSViewService instruction bytes when the guarded HomePod mini 2 recognition patch refuses to apply. In-memory only.
 Maintainer: Soumen Saha Jyoti
 Author: Soumen Saha Jyoti
 Section: Tweaks

@@ -33,9 +33,18 @@ static const uint8_t kOriginalInstructions[20] = {
 
 static const uint8_t kNopInstruction[4] = { 0x1f, 0x20, 0x03, 0xd5 };
 
+static NSString *HPBridgeHexBytes(const uint8_t *bytes, size_t count) {
+    NSMutableString *hex = [NSMutableString stringWithCapacity:count * 3];
+    for (size_t i = 0; i < count; ++i) {
+        if (i) [hex appendString:@" "];
+        [hex appendFormat:@"%02x", (unsigned int)bytes[i]];
+    }
+    return hex;
+}
+
 static void HPBridgeApplyPatch(void) {
     @autoreleasepool {
-        NSLog(@"[HomePodBridge 0.1.2] Initialized");
+        NSLog(@"[HomePodBridge 0.1.3] Initialized");
         NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
         if (![bundleID isEqualToString:@"com.apple.HDSViewService"]) {
             return;
@@ -62,7 +71,11 @@ static void HPBridgeApplyPatch(void) {
         uint8_t *base = (uint8_t *)(uintptr_t)header;
         uint8_t *signature = base + kSignatureOffset;
         if (memcmp(signature, kOriginalInstructions, sizeof(kOriginalInstructions)) != 0) {
-            NSLog(@"[HomePodBridge] Refusing to patch: instruction signature mismatch");
+            const char *imageName = _dyld_get_image_name(0);
+            NSLog(@"[HomePodBridge] Refusing to patch: instruction signature mismatch at image +0x%lx; image=%s",
+                  (unsigned long)kSignatureOffset, imageName ? imageName : "(unknown)");
+            NSLog(@"[HomePodBridge] Live instructions: %@", HPBridgeHexBytes(signature, sizeof(kOriginalInstructions)));
+            NSLog(@"[HomePodBridge] Expected instructions: %@", HPBridgeHexBytes(kOriginalInstructions, sizeof(kOriginalInstructions)));
             return;
         }
 
