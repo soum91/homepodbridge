@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 - 2026-11-07
+
+- Recorded the first real device test of 0.1.0: the update-required screen was bypassed, but the HomePod mini 2 immediately returned `Setup Failed (-6732)`. Pairing is **not** working yet.
+- Added narrowly scoped `NSError` instrumentation in `HDSViewService` to record failure domain, code, user-info **key names only**, and a short symbolic call stack for `-6732`.
+- Restricted the new diagnostics to the exact iOS 16.1.x / `HDSViewService` build 24 / original instruction signature, and enabled them only if the in-memory device-recognition patch succeeds.
+- Capped logging to 32 relevant error events per process, omitting all private error values, Apple IDs, and pairing credentials.
+- Retained the original reversible 4-byte in-memory patch. Neither iOS nor HomePod firmware is updated by this release.
+
 ## 0.1.0 - 2026-11-07
 
 - Confirmed the uploaded iOS 16.1.1 HomePod Setup executable is ARM64e Mach-O with bundle ID `com.apple.HDSViewService`, bundle version `24`.
