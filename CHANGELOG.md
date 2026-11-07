@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 - 2026-11-07
+
+- Reverted the `NSError` method hooks, limited error tracing, and Logos `%ctor` initialization added in 0.1.1 after the real iPhone 13 Pro Max test again showed the **Software Update** screen.
+- Restored the exact 0.1.0 device-recognition patch logic and original C constructor entry point. Changed only the version label in its initialization log.
+- Retained signature, iOS, build, and bundle checks. This is a rollback of a regression, **not** a claimed fix for the remaining `Setup Failed (-6732)` error.
+
 ## 0.1.1 - 2026-11-07
 
 - Recorded the first real device test of 0.1.0: the update-required screen was bypassed, but the HomePod mini 2 immediately returned `Setup Failed (-6732)`. Pairing is **not** working yet.

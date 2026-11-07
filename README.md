@@ -1,6 +1,6 @@
 # HomePod Bridge (experimental)
 
-An experimental tweak for Soumen's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine rootless and ElleKit. It lets a newer HomePod mini 2 (device type 11) move past the HomePod Setup screen requiring a newer iOS version. Pairing **still fails** at `Setup Failed (-6732)`; release 0.1.1 instruments that failure without updating iOS.
+An experimental tweak for Soumen's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine rootless and ElleKit. Version 0.1.0 moved the newer HomePod mini 2 (device type 11) past the update-required screen, but pairing then failed at `Setup Failed (-6732)`. Version 0.1.1's error hooks caused the update-required screen to reappear. Version 0.1.2 restores the original 0.1.0 patch implementation.
 
 ## What the reverse engineering established
 
@@ -9,14 +9,14 @@ An experimental tweak for Soumen's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine
 - The rejection is the `b.ne` instruction at image-relative offset `0x82318`. On the exact file supplied by the user, its 4 bytes are `61 00 00 54`.
 - Replacing that conditional branch with an ARM64 NOP (`1f 20 03 d5`) allows execution to fall through to the existing success return. The tweak changes code in **HDSViewService memory only**, not the executable stored on disk.
 
-**Observed on the actual devices:** version 0.1.0 bypasses the upgrade screen but immediately produces `Setup Failed (-6732)`. Version 0.1.1 captures privacy-filtered error metadata for diagnosis; it is **not** a pairing fix. Subsequent pairing stages may have other iOS version or feature requirements. Installation has risks typical of experimental jailbreak tweaks, including process crashes. Use only on the matching iOS build and remove the package if the setup UI behaves unexpectedly.
+**Observed on the actual devices:** version 0.1.0 bypasses the upgrade screen but immediately produces `Setup Failed (-6732)`. Version 0.1.1 regressed to the update-required screen. Version 0.1.2 removes the diagnostic hooks and returns to 0.1.0 behavior; **pairing is still not verified**. Subsequent pairing stages may have other iOS version or feature requirements. Installation has risks typical of experimental jailbreak tweaks, including process crashes. Use only on the matching iOS build and remove the package if the setup UI behaves unexpectedly.
 
 ## Build and test
 
 1. To build through GitHub, put this folder's **contents** at the root of a GitHub repository. GitHub Actions will run `.github/workflows/build.yml` on pushes to `main`, using a macOS 15 runner and the modern ARM64e ABI. Download the `HomePodBridge-rootless-deb` workflow artifact when the build succeeds. Alternatively, on a Mac with Theos and the iOS 16.5 SDK run `make package FINALPACKAGE=1`.
 2. Install the generated `.deb` on the *iPhone 13 Pro Max running 16.1.1* using Sileo. This is not for the iPhone 17.
 3. Fully close the HomePod Setup view, then start a fresh pairing attempt so `HDSViewService` relaunches with the injected tweak.
-4. Collect log lines containing `HomePodBridge` and `HomePodSetupInteractor` (and ideally the next setup steps). `ErrorTrace` lines record error domains, numeric codes, and `userInfo` **keys only**. `ErrorStack` contains a limited call stack for `-6732` with no pairing payload. If these lines do not appear, do not assume the failure has been diagnosed.
+4. Verify whether the original 0.1.0 behavior returns. Collect log lines containing `HomePodBridge` and `HomePodSetupInteractor`. The experimental `ErrorTrace` and `ErrorStack` hooks have been removed from 0.1.2 after the 0.1.1 regression.
 5. To revert, **uninstall HomePod Bridge from Sileo**, then relaunch setup. The original Apple executable was never changed on disk.
 
 Do not modify, overwrite, or replace Apple's system app. Do not update iOS, disable the jailbreak, or erase the HomePod in order to run this test.
@@ -34,7 +34,7 @@ If any check fails, the tweak skips patching and logs the reason.
 
 ## Debug logging on Windows
 
-Once connected over USB, run the existing working `pymobiledevice3 syslog live` command, filtering for `HomePodBridge` and `HDSViewService`; look for `[HomePodBridge 0.1.1] ErrorTrace` and `ErrorStack` at the instant setup fails. Keep the unfiltered trace locally if the error is only reported from `sharingd`. Avoid Frida attach for this experiment: in the earlier tests it failed for Calculator as well as the setup process, making it an unreliable indicator.
+Once connected over USB, run the existing working `pymobiledevice3 syslog live` command, filtering for `HomePodBridge` and `HDSViewService`; look for `[HomePodBridge 0.1.2] Initialized` and `Patched unknown-device update gate`. Keep the unfiltered trace locally if the error is only reported from `sharingd`, but do not share unredacted account or pairing values. Avoid Frida attach for this experiment: in the earlier tests it failed for Calculator as well as the setup process, making it an unreliable indicator.
 
 ## Source integrity
 
@@ -48,7 +48,7 @@ The uploaded Apple binary and app assets are **not included** in this source pac
 
 `https://soum91.github.io/homepodbridge/`
 
-The `gh-pages` branch contains the latest successfully built package and matching APT metadata (0.1.0 until the 0.1.1 CI job completes). The repository has now been renamed to all lowercase. The URL path is **case-sensitive**: `/homepodbridge/Release` returns HTTP 200, whereas the former `/HomePodBridge/Release` returns HTTP 404. Remove the old Sileo source and add the lowercase URL above. The build workflow keeps this branch updated with every successful build. This site is separate from Timbre.
+The `gh-pages` branch contains the latest successfully built package and matching APT metadata. The repository has now been renamed to all lowercase. The URL path is **case-sensitive**: `/homepodbridge/Release` returns HTTP 200, whereas the former `/HomePodBridge/Release` returns HTTP 404. Remove the old Sileo source and add the lowercase URL above. The build workflow keeps this branch updated with every successful build. This site is separate from Timbre.
 
 HomePodBridge builds additionally publish the package and index in `docs/` on `main`. The raw GitHub alternative is:
 

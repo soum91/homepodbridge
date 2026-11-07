@@ -33,110 +33,49 @@ static const uint8_t kOriginalInstructions[20] = {
 
 static const uint8_t kNopInstruction[4] = { 0x1f, 0x20, 0x03, 0xd5 };
 
-// Only inspect error metadata. Never record Apple IDs, pairing tokens, device
-// identifiers, passwords, or NSError userInfo values. The error is produced
-// after the first unknown-device guard is bypassed, so its domain and caller
-// are needed before attempting another compatibility patch.
-static bool gDiagnosticsEnabled = false;
-static volatile int32_t gErrorReportCount = 0;
-static __thread bool gTracingError = false;
-
-static void HPBridgeTraceError(NSError *error, NSInteger code, const char *origin) {
-    if (!gDiagnosticsEnabled || gTracingError || code > -6500 || code < -7100) {
-        return;
-    }
-
-    gTracingError = true;
-    int32_t report = __sync_add_and_fetch(&gErrorReportCount, 1);
-    if (report <= 32) {
-        NSString *domain = [error domain] ?: @"(no domain)";
-        NSArray *keys = [[error userInfo] allKeys] ?: @[];
-        NSLog(@"[HomePodBridge 0.1.1] ErrorTrace #%d origin=%s domain=%@ code=%ld userInfoKeys=%@",
-              report, origin, domain, (long)code, keys);
-
-        // Captures the framework/method responsible for showing -6732,
-        // without leaking any pairing payload or private error values.
-        if (code == -6732) {
-            NSArray *frames = [NSThread callStackSymbols];
-            NSUInteger count = MIN((NSUInteger)12, [frames count]);
-            NSLog(@"[HomePodBridge 0.1.1] ErrorStack #%d %@",
-                  report, [frames subarrayWithRange:NSMakeRange(0, count)]);
-        }
-    }
-    gTracingError = false;
-}
-
-%hook NSError
-
-- (NSInteger)code {
-    NSInteger code = %orig;
-    HPBridgeTraceError(self, code, "code");
-    return code;
-}
-
-- (instancetype)initWithDomain:(NSString *)domain code:(NSInteger)code userInfo:(NSDictionary *)userInfo {
-    NSError *error = %orig;
-    HPBridgeTraceError(error, code, "initWithDomain");
-    return error;
-}
-
-+ (instancetype)errorWithDomain:(NSString *)domain code:(NSInteger)code userInfo:(NSDictionary *)userInfo {
-    NSError *error = %orig;
-    HPBridgeTraceError(error, code, "errorWithDomain");
-    return error;
-}
-
-%end
-
-static bool HPBridgeApplyPatch(void) {
+static void HPBridgeApplyPatch(void) {
     @autoreleasepool {
-        NSLog(@"[HomePodBridge 0.1.1] Initialized");
+        NSLog(@"[HomePodBridge 0.1.2] Initialized");
         NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
         if (![bundleID isEqualToString:@"com.apple.HDSViewService"]) {
-            return false;
+            return;
         }
 
         NSString *bundleVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
         if (![bundleVersion isEqualToString:@"24"]) {
             NSLog(@"[HomePodBridge] Refusing to patch unexpected HDSViewService build %@", bundleVersion);
-            return false;
+            return;
         }
 
         NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
         if (version.majorVersion != 16 || version.minorVersion != 1) {
             NSLog(@"[HomePodBridge] Refusing to patch unexpected iOS version %ld.%ld", (long)version.majorVersion, (long)version.minorVersion);
-            return false;
+            return;
         }
 
         const struct mach_header *header = _dyld_get_image_header(0);
         if (!header || header->magic != MH_MAGIC_64) {
             NSLog(@"[HomePodBridge] Refusing to patch invalid main executable header");
-            return false;
+            return;
         }
 
         uint8_t *base = (uint8_t *)(uintptr_t)header;
         uint8_t *signature = base + kSignatureOffset;
         if (memcmp(signature, kOriginalInstructions, sizeof(kOriginalInstructions)) != 0) {
             NSLog(@"[HomePodBridge] Refusing to patch: instruction signature mismatch");
-            return false;
+            return;
         }
 
         uint8_t *target = base + kBranchOffset;
         MSHookMemory(target, kNopInstruction, sizeof(kNopInstruction));
         if (memcmp(target, kNopInstruction, sizeof(kNopInstruction)) == 0) {
             NSLog(@"[HomePodBridge] Patched unknown-device update gate at +0x%lx", (unsigned long)kBranchOffset);
-            return true;
         } else {
             NSLog(@"[HomePodBridge] FAILED to patch unknown-device update gate");
-            return false;
         }
     }
 }
 
-%ctor {
-    if (HPBridgeApplyPatch()) {
-        %init;
-        gDiagnosticsEnabled = true;
-        NSLog(@"[HomePodBridge 0.1.1] Error tracing enabled for HDSViewService only");
-    }
+__attribute__((constructor)) static void HPBridgeInitialize(void) {
+    HPBridgeApplyPatch();
 }
