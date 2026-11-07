@@ -1,15 +1,15 @@
 Package: com.soum91.homepodbridge
 Name: HomePod Bridge (Experimental)
-Description: Diagnostic release logging live HDSViewService instruction bytes when the guarded HomePod mini 2 recognition patch refuses to apply. In-memory only.
+Description: Targets the actual HDSViewService Mach-O executable instead of the ElleKit systemhook library, retaining the exact instruction guard and in-memory patch.
 Maintainer: Soumen Saha Jyoti
 Author: Soumen Saha Jyoti
 Section: Tweaks
 Depends: firmware (>= 16.1), ellekit
 Architecture: iphoneos-arm64
-Version: 0.1.3
+Version: 0.1.4
 Installed-Size: 72
-Filename: ./debs/com.soum91.homepodbridge_0.1.3_iphoneos-arm64.deb
-Size: 3970
-MD5sum: 3876302f662145002b519f45544a65b4
-SHA256: fd1aff9184f4c009a2a20707445a5954dd1dbe60b20d7e5859f321a3ac069f8f
+Filename: ./debs/com.soum91.homepodbridge_0.1.4_iphoneos-arm64.deb
+Size: 4136
+MD5sum: f15c467d7fbec81499ab596f9e7454c7
+SHA256: bf3d2b453b461089d0262c8c0829d1f618014d02497936ece58640db184d045d
 
