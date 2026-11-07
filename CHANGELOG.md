@@ -9,5 +9,6 @@
 - Added a macOS GitHub Actions build with an ARM64e target, rootless package scheme, and downloadable `.deb` artifact.
 - Added exact-binary SHA-256 and instruction-sequence verification script.
 - Added reproducible flat Sileo APT metadata generation and a GitHub Actions publish step that keeps `/docs` current with successful builds.
+- Fixed Sileo source refresh failure: include the mandatory `Components: main` field in `Release` metadata. Sileo's repository parser rejects a release without it.
 
 **Status:** Source and static patch verified; a rootless ARM64e `.deb` has been compiled in GitHub Actions. The tweak has not been tested on the actual iPhone/HomePod combination yet.
