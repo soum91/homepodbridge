@@ -115,7 +115,8 @@ def main() -> int:
 <title>HomePodBridge Sileo Repository</title></head>
 <body style="font:16px system-ui;margin:3rem auto;max-width:40rem;padding:0 1rem">
 <h1>HomePodBridge</h1><p>Experimental HomePod mini 2 support for iOS 16.1.1 with Dopamine rootless.</p>
-<p>Add this URL as a source in Sileo:</p><pre>https://soum91.github.io/HomePodBridge/</pre>
+<p>Add this URL as a source in Sileo after the GitHub repository is renamed to lowercase:</p>
+<pre>https://soum91.github.io/homepodbridge/</pre>
 <p>Use only on the matching device and iOS version. This tweak is experimental and may not complete pairing.</p>
 </body></html>
 ''', encoding='utf8')
