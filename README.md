@@ -44,18 +44,22 @@ The uploaded Apple binary and app assets are **not included** in this source pac
 
 ## Sileo APT source
 
-**Recommended Sileo source:** The experimental 0.1.0 package and corrected APT index are hosted in a separate directory on the already-enabled Timbre GitHub Pages site. GitHub reported a successful Pages deployment:
-
-`https://soum91.github.io/timbre/homepodbridge/`
-
-HomePodBridge's own successful GitHub Actions builds also automatically publish the package and index in `docs/`. The raw GitHub alternative is:
-
-`https://raw.githubusercontent.com/soum91/HomePodBridge/main/docs/`
-
-For a dedicated HomePodBridge GitHub Pages site, its source would be:
+**Dedicated HomePodBridge Sileo source (once Pages is enabled):**
 
 `https://soum91.github.io/HomePodBridge/`
 
-To enable the dedicated site, the repo owner must visit the HomePodBridge **Settings → Pages**, select **Deploy from a branch**, choose **main** and **/docs**, then save. The Timbre-hosted mirror currently contains the 0.1.0 package and does **not yet automatically sync** future HomePodBridge builds.
+The `gh-pages` branch contains the experimental 0.1.0 package and matching APT metadata. The HomePodBridge build workflow now keeps this branch updated automatically with every successful build. It is separate from Timbre.
+
+**One-time activation:** Open the HomePodBridge repository's **Settings → Pages**, choose **Deploy from a branch**, set branch **gh-pages** and folder **/(root)**, then Save. This GitHub App connection cannot enable the Pages site through GitHub's administrative API. Do not add the dedicated URL to Sileo until Pages reports a successful deployment.
+
+Temporary working Pages mirror, currently hosted separately under Timbre's existing site:
+
+`https://soum91.github.io/timbre/homepodbridge/`
+
+HomePodBridge builds additionally publish the package and index in `docs/` on `main`. The raw GitHub alternative is:
+
+`https://raw.githubusercontent.com/soum91/HomePodBridge/main/docs/`
+
+The Timbre-hosted mirror currently contains 0.1.0 and does **not** automatically sync future HomePodBridge builds; use the dedicated site for updates after activation.
 
 The repository is currently unsigned. If Sileo rejects it for authentication or signature policy, use the directly downloaded `.deb` until a stable signing key and signed `Release` are configured.
