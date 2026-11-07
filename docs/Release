@@ -2,13 +2,14 @@ Origin: HomePodBridge
 Label: HomePodBridge
 Suite: stable
 Codename: ios
+Components: main
 Version: 0.1.0
 Architectures: iphoneos-arm64
 Description: Experimental HomePod mini 2 compatibility tweak for Dopamine rootless
-Date: Sat, 07 Nov 2026 18:59:14 +0000
+Date: Sat, 07 Nov 2026 19:05:19 +0000
 MD5Sum:
- 314b8859709364a4589bc17f319defd3              573 Packages
- c52bbc41c9e3bd12274534828d87e612              400 Packages.gz
+ af3330006834812953a5cdddf37ec163              573 Packages
+ ae54651893a5e5a143652c42ccba875e              398 Packages.gz
 SHA256:
- cd7255a474df765ae30baa68bf8a4aa4c31e83c51e3c24ace92c6b57c0e6cedd              573 Packages
- fa2fb4995463f5ec7697dd5362d14331bb982ad007c16648ce368c354df9c6f5              400 Packages.gz
+ d3cfd079525da1fe1c807bc4f9abf02dc58b421533f275c8e3669db434647458              573 Packages
+ f22a1e4d925f1a98f5eab8e076009274dff981c9450e5e39226c8064d80ca09f              398 Packages.gz
