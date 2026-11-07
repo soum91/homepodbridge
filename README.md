@@ -44,10 +44,14 @@ The uploaded Apple binary and app assets are **not included** in this source pac
 
 ## Sileo APT source
 
-Each successful GitHub Actions build publishes a flat APT repository in `docs/`, including the built `.deb`, `Packages`, `Packages.gz`, and `Release`. The GitHub Pages source is:
+Each successful GitHub Actions build publishes a flat APT repository in `docs/`, including the built `.deb`, `Packages`, `Packages.gz`, and `Release`. **Use this URL in Sileo immediately**, without configuring GitHub Pages:
+
+`https://raw.githubusercontent.com/soum91/HomePodBridge/main/docs/`
+
+The optional shorter GitHub Pages source is:
 
 `https://soum91.github.io/HomePodBridge/`
 
-To enable the source for the first time, the repo owner must visit **Settings → Pages**, select **Deploy from a branch**, choose **main** and **/docs**, then save. GitHub Pages may take a few minutes to deploy. The Sileo source is usable only once the `Release` URL responds successfully.
+To enable the GitHub Pages variant for the first time, the repo owner must visit **Settings → Pages**, select **Deploy from a branch**, choose **main** and **/docs**, then save. GitHub Pages may take a few minutes to deploy. The raw GitHub source above does not require this step.
 
 The repository is currently unsigned. If Sileo rejects it for authentication or signature policy, use the directly downloaded `.deb` until a stable signing key and signed `Release` are configured.
