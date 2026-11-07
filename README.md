@@ -44,14 +44,18 @@ The uploaded Apple binary and app assets are **not included** in this source pac
 
 ## Sileo APT source
 
-Each successful GitHub Actions build publishes a flat APT repository in `docs/`, including the built `.deb`, `Packages`, `Packages.gz`, and `Release`. **Use this URL in Sileo immediately**, without configuring GitHub Pages:
+**Recommended Sileo source:** The experimental 0.1.0 package and corrected APT index are hosted in a separate directory on the already-enabled Timbre GitHub Pages site. GitHub reported a successful Pages deployment:
+
+`https://soum91.github.io/timbre/homepodbridge/`
+
+HomePodBridge's own successful GitHub Actions builds also automatically publish the package and index in `docs/`. The raw GitHub alternative is:
 
 `https://raw.githubusercontent.com/soum91/HomePodBridge/main/docs/`
 
-The optional shorter GitHub Pages source is:
+For a dedicated HomePodBridge GitHub Pages site, its source would be:
 
 `https://soum91.github.io/HomePodBridge/`
 
-To enable the GitHub Pages variant for the first time, the repo owner must visit **Settings → Pages**, select **Deploy from a branch**, choose **main** and **/docs**, then save. GitHub Pages may take a few minutes to deploy. The raw GitHub source above does not require this step.
+To enable the dedicated site, the repo owner must visit the HomePodBridge **Settings → Pages**, select **Deploy from a branch**, choose **main** and **/docs**, then save. The Timbre-hosted mirror currently contains the 0.1.0 package and does **not yet automatically sync** future HomePodBridge builds.
 
 The repository is currently unsigned. If Sileo rejects it for authentication or signature policy, use the directly downloaded `.deb` until a stable signing key and signed `Release` are configured.
