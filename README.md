@@ -1,6 +1,6 @@
 # HomePod Bridge (experimental)
 
-An experimental tweak for Soumen's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine rootless and ElleKit. Version 0.1.0 moved the newer HomePod mini 2 (device type 11) past the update-required screen, but pairing then failed at `Setup Failed (-6732)`. Version 0.1.1's error hooks caused the update-required screen to reappear. Version 0.1.2 restores the original 0.1.0 patch implementation.
+An experimental tweak for Soumen's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine rootless and ElleKit. Version 0.1.4 fixes the ElleKit Mach-O image-selection bug and has been observed advancing HomePod mini 2 (device type 11) past the update-required screen to **Setting Up**. Complete pairing is **not** working yet: the next observed failure is `kHomeKitSyncTimeoutErr (-71163)` at `HomeKitSetupWaitDeviceSetup`.
 
 ## What the reverse engineering established
 
@@ -9,14 +9,14 @@ An experimental tweak for Soumen's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine
 - The rejection is the `b.ne` instruction at image-relative offset `0x82318`. On the exact file supplied by the user, its 4 bytes are `61 00 00 54`.
 - Replacing that conditional branch with an ARM64 NOP (`1f 20 03 d5`) allows execution to fall through to the existing success return. The tweak changes code in **HDSViewService memory only**, not the executable stored on disk.
 
-**Observed on the actual devices:** version 0.1.0 bypasses the upgrade screen but immediately produces `Setup Failed (-6732)`. Version 0.1.1 regressed to the update-required screen. Version 0.1.2 removes the diagnostic hooks and returns to 0.1.0 behavior; **pairing is still not verified**. Subsequent pairing stages may have other iOS version or feature requirements. Installation has risks typical of experimental jailbreak tweaks, including process crashes. Use only on the matching iOS build and remove the package if the setup UI behaves unexpectedly.
+**Observed on the actual devices:** version 0.1.0 bypassed the upgrade screen but immediately produced `Setup Failed (-6732)`. Version 0.1.1 regressed to the update-required screen. Version 0.1.2 removed the diagnostic hooks; version 0.1.3 proved the active Mach-O image was incorrectly assumed to be index zero. Version 0.1.4 selects the actual `HDSViewService` executable and reached **Setting Up**, followed by a HomeKit device-setup synchronization timeout. **Pairing is still not verified.** Subsequent stages may have additional iOS version or feature requirements. Installation carries normal experimental jailbreak tweak risks, including process crashes. Use only on the matching iOS build and remove the package if the setup UI behaves unexpectedly.
 
 ## Build and test
 
 1. To build through GitHub, put this folder's **contents** at the root of a GitHub repository. GitHub Actions will run `.github/workflows/build.yml` on pushes to `main`, using a macOS 15 runner and the modern ARM64e ABI. Download the `HomePodBridge-rootless-deb` workflow artifact when the build succeeds. Alternatively, on a Mac with Theos and the iOS 16.5 SDK run `make package FINALPACKAGE=1`.
 2. Install the generated `.deb` on the *iPhone 13 Pro Max running 16.1.1* using Sileo. This is not for the iPhone 17.
 3. Fully close the HomePod Setup view, then start a fresh pairing attempt so `HDSViewService` relaunches with the injected tweak.
-4. Verify whether the original 0.1.0 behavior returns. Collect log lines containing `HomePodBridge` and `HomePodSetupInteractor`. The experimental `ErrorTrace` and `ErrorStack` hooks have been removed from 0.1.2 after the 0.1.1 regression.
+4. Verify that `HomePodBridge 0.1.4` initializes and logs `Patched unknown-device update gate`. Collect the full setup stage trace if a later HomeKit error occurs. The experimental `ErrorTrace` and `ErrorStack` hooks from 0.1.1 remain removed.
 5. To revert, **uninstall HomePod Bridge from Sileo**, then relaunch setup. The original Apple executable was never changed on disk.
 
 Do not modify, overwrite, or replace Apple's system app. Do not update iOS, disable the jailbreak, or erase the HomePod in order to run this test.
@@ -34,7 +34,7 @@ If any check fails, the tweak skips patching and logs the reason.
 
 ## Debug logging on Windows
 
-Once connected over USB, run the existing working `pymobiledevice3 syslog live` command, filtering for `HomePodBridge` and `HDSViewService`; look for `[HomePodBridge 0.1.2] Initialized` and `Patched unknown-device update gate`. Keep the unfiltered trace locally if the error is only reported from `sharingd`, but do not share unredacted account or pairing values. Avoid Frida attach for this experiment: in the earlier tests it failed for Calculator as well as the setup process, making it an unreliable indicator.
+Once connected over USB, run `scripts/capture-homepod.ps1` from Windows PowerShell and start the setup attempt. It writes a timestamped text file to the **current directory**, not a possibly redirected Desktop folder. Run `python scripts/summarize-homepod-log.py PATH_TO_CAPTURE` for a privacy-conscious phase summary. Keep the unfiltered trace locally if the error is only reported from another daemon, and do not share unredacted account or pairing values. Avoid Frida attach for this experiment: in the earlier tests it failed for Calculator as well as the setup process, making it an unreliable indicator. See `INVESTIGATION.md` for the known HomeKit timeout and the current offline evidence.
 
 ## Source integrity
 
