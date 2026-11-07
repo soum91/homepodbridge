@@ -96,6 +96,7 @@ def main() -> int:
         'Label: HomePodBridge',
         'Suite: stable',
         'Codename: ios',
+        'Components: main',
         'Version: 0.1.0',
         'Architectures: ' + ' '.join(sorted(architectures)),
         'Description: Experimental HomePod mini 2 compatibility tweak for Dopamine rootless',
