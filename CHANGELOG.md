@@ -8,5 +8,6 @@
 - Restricted tweak injection to `HDSViewService` and provided Sileo-uninstall rollback instructions.
 - Added a macOS GitHub Actions build with an ARM64e target, rootless package scheme, and downloadable `.deb` artifact.
 - Added exact-binary SHA-256 and instruction-sequence verification script.
+- Added reproducible flat Sileo APT metadata generation and a GitHub Actions publish step that keeps `/docs` current with successful builds.
 
-**Status:** Source and static patch verified. No device test or compiled `.deb` has been completed yet.
+**Status:** Source and static patch verified; a rootless ARM64e `.deb` has been compiled in GitHub Actions. The tweak has not been tested on the actual iPhone/HomePod combination yet.
