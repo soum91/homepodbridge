@@ -11,6 +11,6 @@
 - Added reproducible flat Sileo APT metadata generation and a GitHub Actions publish step that keeps `/docs` current with successful builds.
 - Fixed Sileo source refresh failure: include the mandatory `Components: main` field in `Release` metadata. Sileo's repository parser rejects a release without it.
 - Published a separate 0.1.0 Sileo APT mirror under `https://soum91.github.io/timbre/homepodbridge/`, using Timbre's existing active GitHub Pages site; the Pages deployment succeeded. Automatic updates to this mirror are not yet configured.
-- Created a standalone HomePodBridge `gh-pages` branch with the package and index at the site root; added build workflow publication to the branch. Dedicated GitHub Pages site activation still requires one-time repository Pages settings change.
+- Created a standalone HomePodBridge `gh-pages` branch with the package and index at the site root; added build workflow publication to the branch. GitHub Pages activated automatically and the first deployment completed successfully.
 
 **Status:** Source and static patch verified; a rootless ARM64e `.deb` has been compiled in GitHub Actions. The tweak has not been tested on the actual iPhone/HomePod combination yet.
