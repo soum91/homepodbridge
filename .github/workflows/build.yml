@@ -51,3 +51,14 @@ jobs:
             git commit -m "Publish HomePodBridge Sileo repository [skip ci]"
             git push origin HEAD:main
           fi
+
+      - name: Publish dedicated Sileo site to gh-pages
+        run: |
+          git fetch origin gh-pages
+          git worktree add --detach "$RUNNER_TEMP/homepodbridge-pages" origin/gh-pages
+          rsync -a --delete --exclude='.git' docs/ "$RUNNER_TEMP/homepodbridge-pages/"
+          git -C "$RUNNER_TEMP/homepodbridge-pages" add -A
+          if ! git -C "$RUNNER_TEMP/homepodbridge-pages" diff --cached --quiet; then
+            git -C "$RUNNER_TEMP/homepodbridge-pages" commit -m "Publish HomePodBridge Sileo APT package"
+            git -C "$RUNNER_TEMP/homepodbridge-pages" push origin HEAD:gh-pages
+          fi
