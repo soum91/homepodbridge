@@ -1,15 +1,15 @@
 Package: com.soum91.homepodbridge
 Name: HomePod Bridge (Experimental)
-Description: Experimental HomePod mini 2 recognition patch and privacy-filtered -6732 setup diagnostics for iOS 16.1.1. Does not modify system binaries on disk.
+Description: Reverted to the 0.1.0 HomePod mini 2 recognition patch on iOS 16.1.1 after 0.1.1 diagnostics regressed to an update popup. In-memory only.
 Maintainer: Soumen Saha Jyoti
 Author: Soumen Saha Jyoti
 Section: Tweaks
 Depends: firmware (>= 16.1), ellekit
 Architecture: iphoneos-arm64
-Version: 0.1.1
+Version: 0.1.2
 Installed-Size: 72
-Filename: ./debs/com.soum91.homepodbridge_0.1.1_iphoneos-arm64.deb
-Size: 4618
-MD5sum: 06d9d1d4d81fa9f55b8966ae6570a64c
-SHA256: db630f79b893341efb5b100ae122590a11b0ec2b6978b919c4cea02f74e5f633
+Filename: ./debs/com.soum91.homepodbridge_0.1.2_iphoneos-arm64.deb
+Size: 3568
+MD5sum: 62bd88d33d7486318f5b9a6f3dc2999d
+SHA256: 8661cf0ab564b6658129193b4378137732104ab35fe8ffe9c18c73b8d19dc94b
 
