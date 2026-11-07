@@ -46,13 +46,13 @@ The uploaded Apple binary and app assets are **not included** in this source pac
 
 **Dedicated HomePodBridge Sileo source:**
 
-`https://soum91.github.io/HomePodBridge/`
+`https://soum91.github.io/homepodbridge/`
 
-The `gh-pages` branch contains the experimental 0.1.0 package and matching APT metadata. GitHub Pages enabled automatically and deployment succeeded. The URL path is **case-sensitive**: `/HomePodBridge/Release` returns HTTP 200, whereas `/homepodbridge/Release` returns HTTP 404. Copy the URL above exactly, preserving its capital letters. The build workflow keeps this branch updated with every successful build. This site is separate from Timbre.
+The `gh-pages` branch contains the experimental 0.1.0 package and matching APT metadata. The repository has now been renamed to all lowercase. The URL path is **case-sensitive**: `/homepodbridge/Release` returns HTTP 200, whereas the former `/HomePodBridge/Release` returns HTTP 404. Remove the old Sileo source and add the lowercase URL above. The build workflow keeps this branch updated with every successful build. This site is separate from Timbre.
 
 HomePodBridge builds additionally publish the package and index in `docs/` on `main`. The raw GitHub alternative is:
 
-`https://raw.githubusercontent.com/soum91/HomePodBridge/main/docs/`
+`https://raw.githubusercontent.com/soum91/homepodbridge/main/docs/`
 
 Use the dedicated GitHub Pages URL for installation and automatic updates. A temporary mirror was originally placed on Timbre's Pages site during troubleshooting, but HomePodBridge no longer relies on it.
 
