@@ -44,22 +44,16 @@ The uploaded Apple binary and app assets are **not included** in this source pac
 
 ## Sileo APT source
 
-**Dedicated HomePodBridge Sileo source (once Pages is enabled):**
+**Dedicated HomePodBridge Sileo source:**
 
 `https://soum91.github.io/HomePodBridge/`
 
-The `gh-pages` branch contains the experimental 0.1.0 package and matching APT metadata. The HomePodBridge build workflow now keeps this branch updated automatically with every successful build. It is separate from Timbre.
-
-**One-time activation:** Open the HomePodBridge repository's **Settings → Pages**, choose **Deploy from a branch**, set branch **gh-pages** and folder **/(root)**, then Save. This GitHub App connection cannot enable the Pages site through GitHub's administrative API. Do not add the dedicated URL to Sileo until Pages reports a successful deployment.
-
-Temporary working Pages mirror, currently hosted separately under Timbre's existing site:
-
-`https://soum91.github.io/timbre/homepodbridge/`
+The `gh-pages` branch contains the experimental 0.1.0 package and matching APT metadata. GitHub Pages enabled automatically and the initial deployment completed successfully. The HomePodBridge build workflow keeps this branch updated with every successful build. This site is separate from Timbre.
 
 HomePodBridge builds additionally publish the package and index in `docs/` on `main`. The raw GitHub alternative is:
 
 `https://raw.githubusercontent.com/soum91/HomePodBridge/main/docs/`
 
-The Timbre-hosted mirror currently contains 0.1.0 and does **not** automatically sync future HomePodBridge builds; use the dedicated site for updates after activation.
+Use the dedicated GitHub Pages URL for installation and automatic updates. A temporary mirror was originally placed on Timbre's Pages site during troubleshooting, but HomePodBridge no longer relies on it.
 
 The repository is currently unsigned. If Sileo rejects it for authentication or signature policy, use the directly downloaded `.deb` until a stable signing key and signed `Release` are configured.
