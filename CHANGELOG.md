@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4 - 2026-11-07
+
+- Identified the real cause of the signature mismatch from the iPhone 13 Pro Max diagnostic capture: `_dyld_get_image_header(0)` returned `/usr/lib/systemhook.dylib`, not the `HDSViewService` executable, so the previous releases examined the wrong instructions.
+- Locate the loaded Mach-O explicitly by requiring `MH_EXECUTE` and the `HDSViewService` executable basename, rather than assuming image index zero is the executable.
+- Retain all bundle/version/iOS checks and the complete 20-byte expected signature check before applying the existing 4-byte in-memory branch patch. Refuse to patch if no matching executable or signature is found.
+- Log the selected executable path to aid verification. HomePod pairing still requires a real device test; this change fixes the image selection bug, not the entire unverified pairing protocol.
+
 ## 0.1.3 - 2026-11-07
 
 - Confirmed from a real iPhone 13 Pro Max syslog capture that ElleKit loads `HomePodBridge 0.1.2` inside `HDSViewService`, but the signature guard refuses the patch because live memory differs from the original executable file.

@@ -42,9 +42,30 @@ static NSString *HPBridgeHexBytes(const uint8_t *bytes, size_t count) {
     return hex;
 }
 
+// ElleKit can insert systemhook.dylib before the main executable in dyld's
+// image list. Image index zero must not be assumed to be HDSViewService.
+static const struct mach_header *HPBridgeFindExecutable(const char **imagePath) {
+    uint32_t imageCount = _dyld_image_count();
+    for (uint32_t i = 0; i < imageCount; ++i) {
+        const struct mach_header *header = _dyld_get_image_header(i);
+        const char *path = _dyld_get_image_name(i);
+        if (!header || header->magic != MH_MAGIC_64 || header->filetype != MH_EXECUTE || !path) {
+            continue;
+        }
+
+        const char *lastSlash = strrchr(path, '/');
+        const char *name = lastSlash ? lastSlash + 1 : path;
+        if (strcmp(name, "HDSViewService") == 0) {
+            if (imagePath) *imagePath = path;
+            return header;
+        }
+    }
+    return nullptr;
+}
+
 static void HPBridgeApplyPatch(void) {
     @autoreleasepool {
-        NSLog(@"[HomePodBridge 0.1.3] Initialized");
+        NSLog(@"[HomePodBridge 0.1.4] Initialized");
         NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
         if (![bundleID isEqualToString:@"com.apple.HDSViewService"]) {
             return;
@@ -62,18 +83,19 @@ static void HPBridgeApplyPatch(void) {
             return;
         }
 
-        const struct mach_header *header = _dyld_get_image_header(0);
-        if (!header || header->magic != MH_MAGIC_64) {
-            NSLog(@"[HomePodBridge] Refusing to patch invalid main executable header");
+        const char *imagePath = nullptr;
+        const struct mach_header *header = HPBridgeFindExecutable(&imagePath);
+        if (!header) {
+            NSLog(@"[HomePodBridge] Refusing to patch: HDSViewService MH_EXECUTE image not found");
             return;
         }
+        NSLog(@"[HomePodBridge] Verified executable image: %s", imagePath);
 
         uint8_t *base = (uint8_t *)(uintptr_t)header;
         uint8_t *signature = base + kSignatureOffset;
         if (memcmp(signature, kOriginalInstructions, sizeof(kOriginalInstructions)) != 0) {
-            const char *imageName = _dyld_get_image_name(0);
             NSLog(@"[HomePodBridge] Refusing to patch: instruction signature mismatch at image +0x%lx; image=%s",
-                  (unsigned long)kSignatureOffset, imageName ? imageName : "(unknown)");
+                  (unsigned long)kSignatureOffset, imagePath);
             NSLog(@"[HomePodBridge] Live instructions: %@", HPBridgeHexBytes(signature, sizeof(kOriginalInstructions)));
             NSLog(@"[HomePodBridge] Expected instructions: %@", HPBridgeHexBytes(kOriginalInstructions, sizeof(kOriginalInstructions)));
             return;
