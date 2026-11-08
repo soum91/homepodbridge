@@ -53,6 +53,24 @@ jobs:
           } | tee "$report"
           echo "HOMEKIT_REPORT=$report" >> "$GITHUB_ENV"
 
+      - name: Locate code cross-references to pairing gate messages
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            printf '\n=== References to capability-rejection strings ===\n'
+            for pair in \
+              'HomeKitDaemon:0x1fe48a45c' \
+              'HomeKitDaemon:0x1fe48a4ae' \
+              'HomeKitDaemonLegacy:0x1c4bb5821' \
+              'HomeKitDaemonLegacy:0x1c4bb5873'; do
+              image="${pair%%:*}"
+              address="${pair#*:}"
+              printf '\n--- %s at %s ---\n' "$image" "$address"
+              ipsw dyld xref "$HOMEKIT_DSC" "$address" || true
+            done
+          } | tee -a "$HOMEKIT_REPORT"
+
       - name: Extract only HomeKitDaemon images for analysis
         shell: bash
         run: |
