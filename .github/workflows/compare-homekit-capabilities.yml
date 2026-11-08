@@ -74,13 +74,21 @@ jobs:
               '-[HMDUnassociatedAppleMediaAccessory supportedPairingCapabilities]' \
               '-[HMDUnassociatedAppleMediaAccessory requiredPairingCapabilities]' \
               '-[HMDUnassociatedAppleMediaAccessory minimumRequiredPairingSoftwareVersion]' \
+              '-[HMDUnassociatedAppleHomePodAccessory canPairGivenCapabilities:]' \
+              '-[HMDUnassociatedAppleHomePodAccessory requiredPairingCapabilities]' \
               '-[HMDUnassociatedAccessory canPairGivenCapabilities:]' \
               '-[HMDDeviceSetupClientSession canPairGivenCapabilities:]'; do
               printf '\n--- %s ---\n' "$symbol"
               ipsw dyld symaddr --image HomeKitDaemon "$DSC" -- "$symbol" || true
-              ipsw dyld disass "$DSC" --image HomeKitDaemon \
-                --symbol "$symbol" --count 120 || true
+              ipsw dyld disass "$DSC" --symbol "$symbol" --count 120 || true
             done
+            if [[ "$BUILD" == 20B101 ]]; then
+              printf '\n=== Exact iOS 16 implementation addresses verified by symbol lookup ===\n'
+              for address in 0x1fdc06138 0x1fdc05b08 0x1fdc05b18; do
+                printf '\n--- Implementation at %s ---\n' "$address"
+                ipsw dyld disass "$DSC" --vaddr "$address" --count 130 || true
+              done
+            fi
             printf '\n=== HomeKit capability and compatibility strings ===\n'
             for needle in \
               'Our pairing capabilities' \
