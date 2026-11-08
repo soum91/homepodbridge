@@ -9,9 +9,9 @@ Architecture: iphoneos-arm64
 Version: 0.1.5~probe1
 Installed-Size: 72
 Filename: ./debs/com.soum91.homepodbridge.homedprobe_0.1.5~probe1_iphoneos-arm64.deb
-Size: 3874
-MD5sum: 554bbd76c2c0208a13c9afb1637dee09
-SHA256: 4f8f11224ef725162d6bc370e9ed793df82792a6d9a7936fd4e650ceb0e3be72
+Size: 3868
+MD5sum: bdfc5148ac77df8307d1f00c12268e00
+SHA256: 36e37f779f139c76b4144949ae53f642ae83a42d24eb1b1b6e58aac7a1ee0353
 
 Package: com.soum91.homepodbridge
 Name: HomePod Bridge (Experimental)
@@ -24,7 +24,7 @@ Architecture: iphoneos-arm64
 Version: 0.1.4
 Installed-Size: 72
 Filename: ./debs/com.soum91.homepodbridge_0.1.4_iphoneos-arm64.deb
-Size: 4142
-MD5sum: 0a41a608da55ff03eb9da543564bade9
-SHA256: 9310fa6824928bc97c99448df1560850e672ec0a548e90a0854bb81c099c5eda
+Size: 4128
+MD5sum: 28178ebf68c719f63c82174a7a0da97d
+SHA256: 0fa5463ea292c7933ef4dfb36d10c299d073698e4f2942b30c89d7a7a2264543
 
