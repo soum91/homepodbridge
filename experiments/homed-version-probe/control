@@ -1,8 +1,8 @@
 Package: com.soum91.homepodbridge.homedprobe
-Name: HomePodBridge homed Version Probe
-Version: 0.1.5~probe1
+Name: HomePodBridge homed Capability Bridge (Experimental)
+Version: 0.1.6
 Architecture: iphoneos-arm64
-Description: Opt-in experimental iOS 16.1.1 HomeKit minimum-version predicate test; preserves the separate capability check.
+Description: Opt-in iOS 16.1.1 HomePod pairing experiment: preserve the proven minimum-version probe and selectively test the Apple-media capability gate. Pairing is not guaranteed.
 Maintainer: Soumen Saha Jyoti
 Author: Soumen Saha Jyoti
 Section: Tweaks

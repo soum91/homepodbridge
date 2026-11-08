@@ -1,13 +1,80 @@
 #import <Foundation/Foundation.h>
 #import <mach-o/dyld.h>
 #import <mach-o/loader.h>
+#import <objc/runtime.h>
+#import <os/log.h>
 #include <sys/sysctl.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 // A separate, opt-in experiment. It never alters the on-disk Apple binaries.
 // ElleKit exports the Substrate-compatible in-memory patch primitive.
 extern "C" void MSHookMemory(void *target, const void *data, size_t size);
+extern "C" void MSHookMessageEx(Class cls, SEL selector, IMP hook, IMP *original);
+
+static BOOL (*sOriginalCanPair)(id, SEL, unsigned long long) = nullptr;
+static BOOL sCapabilityHookInstalled = NO;
+
+// Only the optional experimental homed package enables this adapter. It is
+// restricted to unassociated Apple media accessories with the observed
+// iOS 16.1.1 capability mask 0x3. Paired accessories and unrelated HomeKit
+// pairing classes continue through Apple's unmodified implementation.
+static BOOL HPBExperimentalCanPair(id accessory, SEL selector,
+                                   unsigned long long availableCapabilities) {
+    BOOL original = sOriginalCanPair
+        ? sOriginalCanPair(accessory, selector, availableCapabilities)
+        : NO;
+
+    uint64_t required = 0;
+    BOOL hasRequiredMask = NO;
+    SEL requiredSelector = sel_registerName("requiredPairingCapabilities");
+    Method requiredMethod = class_getInstanceMethod(object_getClass(accessory), requiredSelector);
+    if (requiredMethod) {
+        char *returnType = method_copyReturnType(requiredMethod);
+        if (returnType && strchr("QqIiLlSsCcB", returnType[0])) {
+            // Inspect Apple's actual mask. Avoid invoking an accessor with
+            // unexpected object/struct return ABI.
+            IMP implementation = method_getImplementation(requiredMethod);
+            required = ((uint64_t (*)(id, SEL))implementation)(accessory, requiredSelector);
+            hasRequiredMask = YES;
+        }
+        if (returnType) free(returnType);
+    }
+
+    Class appleMedia = objc_getClass("HMDUnassociatedAppleMediaAccessory");
+    // HomePod-specific receiver classes can inherit this implementation.
+    // Requiring exact class equality would miss those subclasses.
+    BOOL targeted = appleMedia && [accessory isKindOfClass:appleMedia] &&
+                    availableCapabilities == 0x3;
+
+    // The only forced result in this opt-in package. If Apple already allows
+    // pairing or another accessory class is involved, do not alter its answer.
+    BOOL override = targeted && !original;
+    os_log_error(OS_LOG_DEFAULT,
+                 "[HomePodBridge homed-probe 0.1.6] capability gate: offered=0x%{public}llx required=0x%{public}llx known=%{public}d original=%{public}d override=%{public}d class=%{public}s",
+                 availableCapabilities, (unsigned long long)required,
+                 hasRequiredMask, original, override,
+                 class_getName(object_getClass(accessory)));
+    return original || override;
+}
+
+static void HPBInstallCapabilityHook(void) {
+    if (sCapabilityHookInstalled) return;
+    Class cls = objc_getClass("HMDUnassociatedAppleMediaAccessory");
+    SEL selector = sel_registerName("canPairGivenCapabilities:");
+    if (!cls || !class_getInstanceMethod(cls, selector)) {
+        os_log_error(OS_LOG_DEFAULT,
+                     "[HomePodBridge homed-probe 0.1.6] capability hook unavailable; leaving Apple predicate intact");
+        return;
+    }
+    MSHookMessageEx(cls, selector, (IMP)HPBExperimentalCanPair,
+                    (IMP *)&sOriginalCanPair);
+    sCapabilityHookInstalled = sOriginalCanPair != nullptr;
+    os_log_error(OS_LOG_DEFAULT,
+                 "[HomePodBridge homed-probe 0.1.6] Apple-media capability hook installed=%{public}d",
+                 sCapabilityHookInstalled);
+}
 
 struct HPBVersionProbeTarget {
     const char *pathSuffix;
@@ -93,7 +160,12 @@ static void HPBCheckImage(const struct mach_header *header, intptr_t slide) {
         uint8_t *instruction = reinterpret_cast<uint8_t *>(actualAddress + target.branchInstructionOffset);
         MSHookMemory(instruction, kMoveTrueToW0, sizeof(kMoveTrueToW0));
         if (memcmp(instruction, kMoveTrueToW0, sizeof(kMoveTrueToW0)) == 0) {
-            NSLog(@"[HomePodBridge homed-probe] Version-only comparison patched for %s; capability predicate is untouched", name);
+            NSLog(@"[HomePodBridge homed-probe 0.1.6] Minimum-version predicate patched for %s; scheduling separate media-accessory capability probe", name);
+            // Callback is invoked under dyld's image-load machinery; defer
+            // Objective-C method swizzling until the main queue is available.
+            dispatch_async(dispatch_get_main_queue(), ^{
+                HPBInstallCapabilityHook();
+            });
         } else {
             NSLog(@"[HomePodBridge homed-probe] FAILED to patch %s", name);
         }
@@ -109,7 +181,8 @@ __attribute__((constructor)) static void HPBInitializeProbe(void) {
             NSLog(@"[HomePodBridge homed-probe] Refusing: requires iOS 16.1.1 build 20B101");
             return;
         }
-        NSLog(@"[HomePodBridge homed-probe 0.1.5-probe1] Waiting for matching HomeKit framework image");
+        os_log_error(OS_LOG_DEFAULT,
+                     "[HomePodBridge homed-probe 0.1.6] Waiting for matching HomeKit framework image");
         // dyld invokes this callback for already loaded images and future images.
         _dyld_register_func_for_add_image(HPBCheckImage);
     }

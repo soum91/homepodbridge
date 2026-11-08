@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.6 (optional homed capability bridge) - 2026-11-08
+
+- Confirmed from a real iPhone 13 Pro Max `homed` log that the separate 0.1.5 minimum-version probe succeeds: `minimum software version satisfied: YES`. The HomePod pairing attempt nevertheless fails Apple's independent capability requirement with an offered mask of `0x3` and `HMErrorDomain Code=48`.
+- Added an opt-in, process-scoped hook of `HMDUnassociatedAppleMediaAccessory canPairGivenCapabilities:`. It invokes Apple's original method, records the receiver class and optional integer required-mask result, and overrides a false answer **only** for Apple-media receivers whose offered mask equals the observed `0x3`.
+- Install the hook only after the signature-verified iOS 16.1.1 (20B101) in-memory minimum-version patch succeeds. Preserve the unchanged 0.1.4 `HDSViewService` UI-gate bypass and make no on-disk Apple system file changes.
+- This release tests the next capability gate; the complete HomePod mini 2 protocol is **not yet verified compatible** with iOS 16.1.1, and a real-device setup test is still required.
+
 ## 0.1.4 - 2026-11-07
 
 - Identified the real cause of the signature mismatch from the iPhone 13 Pro Max diagnostic capture: `_dyld_get_image_header(0)` returned `/usr/lib/systemhook.dylib`, not the `HDSViewService` executable, so the previous releases examined the wrong instructions.
