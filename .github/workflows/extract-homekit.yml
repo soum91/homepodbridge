@@ -1,0 +1,79 @@
+name: Analyze iOS 16.1.1 HomeKit pairing gate
+
+on:
+  push:
+    paths:
+      - .github/workflows/extract-homekit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-homekit:
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      IPSW_URL: https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-97051/604F9FC5-7042-4E54-8144-5D6A99082943/iPhone14,3_16.1.1_20B101_Restore.ipsw
+    steps:
+      - name: Install the ipsw extraction utility
+        run: brew install blacktop/tap/ipsw
+
+      - name: Extract arm64e dyld shared cache from matching Apple firmware
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/homekit-dsc"
+          ipsw extract --remote --dyld --dyld-arch arm64e \
+            -o "$RUNNER_TEMP/homekit-dsc" "$IPSW_URL"
+          find "$RUNNER_TEMP/homekit-dsc" -type f -name 'dyld_shared_cache_arm64e*' -print
+          cache_file="$(find "$RUNNER_TEMP/homekit-dsc" -type f -name dyld_shared_cache_arm64e -print -quit)"
+          if [[ -z "$cache_file" ]]; then
+            echo "::error::Base arm64e dyld shared cache was not found"
+            exit 1
+          fi
+          echo "HOMEKIT_DSC=$cache_file" >> "$GITHUB_ENV"
+
+      - name: Identify pairing-capability diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/homekit-capability-analysis.txt"
+          {
+            printf 'Firmware: iPhone14,3 / iOS 16.1.1 / build 20B101\n'
+            printf 'Searches in arm64e dyld shared cache\n\n'
+            for needle in \
+              'Our pairing capabilities' \
+              'minimum software version satisfied' \
+              "Cannot pair as current device doesn't" \
+              'Received accessory HomeKit version'; do
+              printf '\n=== %s ===\n' "$needle"
+              ipsw dyld str "$HOMEKIT_DSC" --pattern "$needle" || true
+            done
+          } | tee "$report"
+          echo "HOMEKIT_REPORT=$report" >> "$GITHUB_ENV"
+
+      - name: Extract only HomeKitDaemon images for analysis
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/homekit-frameworks"
+          for image in HomeKitDaemon HomeKitDaemonLegacy; do
+            echo "Attempting framework extraction: $image"
+            ipsw dyld extract "$HOMEKIT_DSC" "$image" --objc \
+              -o "$RUNNER_TEMP/homekit-frameworks" || true
+          done
+          {
+            printf '\n=== Extracted framework metadata ===\n'
+            find "$RUNNER_TEMP/homekit-frameworks" -type f -maxdepth 1 -exec ls -lh {} \;
+            find "$RUNNER_TEMP/homekit-frameworks" -type f -maxdepth 1 -exec shasum -a 256 {} \;
+          } | tee -a "$HOMEKIT_REPORT"
+
+      - name: Upload text-only diagnostic report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: homekit-capability-analysis
+          path: ${{ runner.temp }}/homekit-capability-analysis.txt
+          if-no-files-found: warn
+          retention-days: 14
