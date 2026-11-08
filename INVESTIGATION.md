@@ -38,3 +38,9 @@ Analyze the strings and cross-references for `Our pairing capabilities`, `minimu
 ## Safety and privacy
 
 This log contains private HomeKit, device and account identifiers. Keep the full log private; share only the redacted lines above. No need for a new device log yet. Do not update iOS, reset the HomePod, modify an on-disk Apple executable, or abandon the jailbreak. This project remains experimental and complete pairing is **not** yet demonstrated.
+
+## homed executable received (2026-11-07)
+
+The 88 KB file copied from `/System/Library/PrivateFrameworks/HomeKitDaemon.framework/Support/homed` was received in a ZIP and verified as a 89,728-byte ARM64e Mach-O executable (PAC arm64e). SHA-256: `6c786e224e03a19a07ec68918b2c2c461f2ec6264ae05d26755c6b0d8ac69645`. It contains an `HMDMainDriver` reference and softlink paths to `/System/Library/PrivateFrameworks/HomeKitDaemon.framework/HomeKitDaemon` and `/System/Library/PrivateFrameworks/HomeKitDaemonLegacy.framework/HomeKitDaemonLegacy`. None of the three capability-rejection log strings appears in this executable. This is consistent with an entrypoint that delegates the pairing implementation to private frameworks; the actual check cannot safely be patched from this executable alone.
+
+**Next read-only collection:** Locate and copy the two matching iOS 16.1.1 framework Mach-O images (or extract the exact-build dylibs from the arm64e dyld shared cache if they are not separate files). The user should first run `ls -lh` on both framework paths. Do not derive patch bytes or offsets from another iOS release.
