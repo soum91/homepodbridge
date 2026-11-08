@@ -58,3 +58,14 @@ The automatic `extract-homekit.yml` job succeeded in recovering the arm64e dyld 
 Extracted image sizes/hashes: `HomeKitDaemon` (27 MB; SHA-256 `d1c968d81ff3a5202d0a0c119be7a525d3e98d4541669aeced8f0ae57b42c46b`); `HomeKitDaemonLegacy` (24 MB; SHA-256 `68f9ff3981ea4b86e0f33d9e0189e663fb5bd9462fa384d022c0e3f4865d7320`).
 
 Both images contain the rejection text, so the active code path still needs to be established. The workflow now collects cross-references to these exact strings. This is **not yet** a proof of a safe bypass or functional support for the newer HomePod.
+
+## Pairing function identified by string cross-references
+
+The next GitHub Actions artifact resolved both capability/rejection strings to the same Objective-C method in each framework:
+
+`-[HMDDeviceSetupClientSession processSessionData:fromBundle:outAccessoryUUID:error:]`
+
+- `HomeKitDaemon`: function start `0x1fdb90c58`. Capability-log reference `0x1fdb915bc` (+2404); rejection-log reference `0x1fdb91704` (+2732).
+- `HomeKitDaemonLegacy`: function start `0x1c433ce18`. Capability-log reference `0x1c433d6a8` (+2192); rejection-log reference `0x1c433d908` (+2800).
+
+The workflow was updated to capture focused ARM64e disassembly around both sets of references. This identifies where the logged rejection occurs but not yet how the capability mask or minimum OS version predicate are computed. Do not patch a branch without verifying those data dependencies and validating real HomePod provisioning.
