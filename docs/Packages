@@ -1,3 +1,18 @@
+Package: com.soum91.homepodbridge.homedprobe
+Name: HomePodBridge homed Version Probe
+Description: Opt-in experimental iOS 16.1.1 HomeKit minimum-version predicate test; preserves the separate capability check.
+Maintainer: Soumen Saha Jyoti
+Author: Soumen Saha Jyoti
+Section: Tweaks
+Depends: firmware (>= 16.1), ellekit, com.soum91.homepodbridge (>= 0.1.4)
+Architecture: iphoneos-arm64
+Version: 0.1.5~probe1
+Installed-Size: 72
+Filename: ./debs/com.soum91.homepodbridge.homedprobe_0.1.5~probe1_iphoneos-arm64.deb
+Size: 3874
+MD5sum: 554bbd76c2c0208a13c9afb1637dee09
+SHA256: 4f8f11224ef725162d6bc370e9ed793df82792a6d9a7936fd4e650ceb0e3be72
+
 Package: com.soum91.homepodbridge
 Name: HomePod Bridge (Experimental)
 Description: Targets the actual HDSViewService Mach-O executable instead of the ElleKit systemhook library, retaining the exact instruction guard and in-memory patch.
@@ -9,7 +24,7 @@ Architecture: iphoneos-arm64
 Version: 0.1.4
 Installed-Size: 72
 Filename: ./debs/com.soum91.homepodbridge_0.1.4_iphoneos-arm64.deb
-Size: 4134
-MD5sum: 61720891d329b20a7d035c7e57d3566f
-SHA256: aa080256f3507632d1df13cc60acc6031439563c5b1ef44f3e1113349013b661
+Size: 4142
+MD5sum: 0a41a608da55ff03eb9da543564bade9
+SHA256: 9310fa6824928bc97c99448df1560850e672ec0a548e90a0854bb81c099c5eda
 

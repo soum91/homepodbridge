@@ -6,10 +6,10 @@ Components: main
 Version: 0.1.0
 Architectures: iphoneos-arm64
 Description: Experimental HomePod mini 2 compatibility tweak for Dopamine rootless
-Date: Sun, 08 Nov 2026 04:19:48 +0000
+Date: Sun, 08 Nov 2026 04:33:14 +0000
 MD5Sum:
- 0a7d93bcf6aa01723d974f86c2135022              602 Packages
- b9e8911113780b1179b79bf607a01eb9              428 Packages.gz
+ 4e3924233535fdb8cdee0eaf38ddb4d5             1239 Packages
+ 0003ff9da02a6eeac04c2226a62feb9f              620 Packages.gz
 SHA256:
- fb410cd2d9ba05163f71309dae0abdbb9c23d93f9a94d234185f3a093258faa3              602 Packages
- c72cba84275b1b9fdff5a335644495f1c21fe149630a216a7e2b0a78fe8f28d9              428 Packages.gz
+ 12a580bb444a52de417445adcd056694732dd10d6a8f8e6c34c1795e6128dcda             1239 Packages
+ 5faff825aa68cdfe224eba54ad88cbf48ecff571f2a8033ce79bd6ce37524aed              620 Packages.gz
