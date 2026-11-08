@@ -69,3 +69,12 @@ The next GitHub Actions artifact resolved both capability/rejection strings to t
 - `HomeKitDaemonLegacy`: function start `0x1c433ce18`. Capability-log reference `0x1c433d6a8` (+2192); rejection-log reference `0x1c433d908` (+2800).
 
 The workflow was updated to capture focused ARM64e disassembly around both sets of references. This identifies where the logged rejection occurs but not yet how the capability mask or minimum OS version predicate are computed. Do not patch a branch without verifying those data dependencies and validating real HomePod provisioning.
+
+## Exact instruction-level decision from focused disassembly
+
+The third diagnostic artifact disassembled the predicate in `-[HMDDeviceSetupClientSession processSessionData:fromBundle:outAccessoryUUID:error:]`:
+
+- Modern `HomeKitDaemon`: calls `supportedPairingCapabilities`, `minimumRequiredPairingSoftwareVersion`, `currentVersion`, and `isAtLeastVersion:` at `0x1fdb91524`; stores result; calls `canPairGivenCapabilities:` at `0x1fdb915ec`; ANDs both booleans at `0x1fdb915f4`; `tbz w8,#0` at `0x1fdb915fc` branches to the Code=48 rejection. A separate `HMDHomeKitVersion` check remains in the success branch for HH2 support.
+- Legacy `HomeKitDaemonLegacy`: `isAtLeastVersion:` at `0x1c433d614`; `canPairGivenCapabilities:` at `0x1c433d6d8`; AND at `0x1c433d6dc`; `tbz w8,#0` at `0x1c433d6e0` branches to the rejection.
+
+**Important:** Logs prove that the minimum version check is false, but do not prove whether `canPairGivenCapabilities:` returns true or false. Bypassing both by NOP-ing `tbz` would discard a potentially real feature requirement. An isolated **version-only** proof of concept is under `experiments/homed-version-probe/`, separate from HomePodBridge 0.1.4. It replaces only the `isAtLeastVersion:` call result with true after build and signature verification, preserves the capabilities result, and has not been tested on-device.
