@@ -44,3 +44,17 @@ This log contains private HomeKit, device and account identifiers. Keep the full
 The 88 KB file copied from `/System/Library/PrivateFrameworks/HomeKitDaemon.framework/Support/homed` was received in a ZIP and verified as a 89,728-byte ARM64e Mach-O executable (PAC arm64e). SHA-256: `6c786e224e03a19a07ec68918b2c2c461f2ec6264ae05d26755c6b0d8ac69645`. It contains an `HMDMainDriver` reference and softlink paths to `/System/Library/PrivateFrameworks/HomeKitDaemon.framework/HomeKitDaemon` and `/System/Library/PrivateFrameworks/HomeKitDaemonLegacy.framework/HomeKitDaemonLegacy`. None of the three capability-rejection log strings appears in this executable. This is consistent with an entrypoint that delegates the pairing implementation to private frameworks; the actual check cannot safely be patched from this executable alone.
 
 **Next read-only collection:** Locate and copy the two matching iOS 16.1.1 framework Mach-O images (or extract the exact-build dylibs from the arm64e dyld shared cache if they are not separate files). The user should first run `ls -lh` on both framework paths. Do not derive patch bytes or offsets from another iOS release.
+
+## Exact-build dyld cache extracted in GitHub Actions (2026-11-07)
+
+The automatic `extract-homekit.yml` job succeeded in recovering the arm64e dyld shared cache from the original iPhone14,3 iOS 16.1.1 (20B101) IPSW hosted on Apple's CDN. Its text-only diagnostic artifact identified exact string locations in both frameworks:
+
+| Diagnostic string | HomeKitDaemon | HomeKitDaemonLegacy |
+| --- | --- | --- |
+| `Our pairing capabilities: 0x%lx, minimum software version satisfied: %@` | `0x1fe48a45c` | `0x1c4bb5821` |
+| `Cannot pair as current device doesn't have all required capabilities.` | `0x1fe48a4ae` | `0x1c4bb5873` |
+| `Received accessory HomeKit version: %@` | `0x1fe48a42b` | `0x1c4bb57f0` |
+
+Extracted image sizes/hashes: `HomeKitDaemon` (27 MB; SHA-256 `d1c968d81ff3a5202d0a0c119be7a525d3e98d4541669aeced8f0ae57b42c46b`); `HomeKitDaemonLegacy` (24 MB; SHA-256 `68f9ff3981ea4b86e0f33d9e0189e663fb5bd9462fa384d022c0e3f4865d7320`).
+
+Both images contain the rejection text, so the active code path still needs to be established. The workflow now collects cross-references to these exact strings. This is **not yet** a proof of a safe bypass or functional support for the newer HomePod.
