@@ -71,6 +71,20 @@ jobs:
             done
           } | tee -a "$HOMEKIT_REPORT"
 
+      - name: Disassemble pairing capability and rejection decisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            printf '\n=== HomeKitDaemon pairing decision ARM64e instructions ===\n'
+            printf 'Function: -[HMDDeviceSetupClientSession processSessionData:fromBundle:outAccessoryUUID:error:]\n'
+            printf 'Function start: 0x1fdb90c58; capability log ref: 0x1fdb915bc; error log ref: 0x1fdb91704\n'
+            ipsw dyld disass "$HOMEKIT_DSC" --vaddr 0x1fdb914e0 --count 190 || true
+            printf '\n=== HomeKitDaemonLegacy pairing decision ARM64e instructions ===\n'
+            printf 'Function start: 0x1c433ce18; capability log ref: 0x1c433d6a8; error log ref: 0x1c433d908\n'
+            ipsw dyld disass "$HOMEKIT_DSC" --vaddr 0x1c433d5c0 --count 260 || true
+          } | tee -a "$HOMEKIT_REPORT"
+
       - name: Extract only HomeKitDaemon images for analysis
         shell: bash
         run: |
