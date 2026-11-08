@@ -9,7 +9,7 @@ Architecture: iphoneos-arm64
 Version: 0.1.4
 Installed-Size: 72
 Filename: ./debs/com.soum91.homepodbridge_0.1.4_iphoneos-arm64.deb
-Size: 4136
-MD5sum: 8ee97a6bf128dc6cce78dc5527083f31
-SHA256: 59568aa476aa20279e60f99db31718c4a2d2d84e0684ea4ac1f694a302302cee
+Size: 4130
+MD5sum: 282453ffcbc3c5f0dcad93631c5ece34
+SHA256: c93db209382b255d6076ffc598a396f4f934ea41a99884dd4de0b14c6eb19b18
 
