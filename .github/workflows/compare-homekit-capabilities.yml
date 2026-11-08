@@ -1,0 +1,121 @@
+name: Compare HomeKit pairing capabilities iOS 16 and 27
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/compare-homekit-capabilities.yml
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: ios16-20B101
+            firmware: iPhone14,3
+            version: 16.1.1
+            build: 20B101
+            ipsw: https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-97051/604F9FC5-7042-4E54-8144-5D6A99082943/iPhone14,3_16.1.1_20B101_Restore.ipsw
+          - label: ios27-24B119
+            firmware: iPhone18,3
+            version: '27.2'
+            build: 24B119
+            ipsw: https://updates.cdn-apple.com/2026FallFCS/fd6e15e5-2710-4a00-821d-215fdcf1af95/iPhone18,3_27.2_24B119_Restore.ipsw
+    runs-on: macos-15
+    timeout-minutes: 110
+    steps:
+      - name: Install ipsw firmware analysis utility
+        run: brew install blacktop/tap/ipsw
+
+      - name: Extract only remote ARM64e dyld shared cache
+        shell: bash
+        env:
+          APPLE_IPSW: ${{ matrix.ipsw }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/hpb-dsc"
+          ipsw extract --remote --dyld --dyld-arch arm64e \
+            -o "$RUNNER_TEMP/hpb-dsc" "$APPLE_IPSW"
+          cache_file="$(find "$RUNNER_TEMP/hpb-dsc" -type f -name dyld_shared_cache_arm64e -print -quit)"
+          if [[ -z "$cache_file" ]]; then
+            echo '::error::Cannot find base ARM64e dyld cache'
+            exit 1
+          fi
+          echo "DSC=$cache_file" >> "$GITHUB_ENV"
+
+      - name: Resolve pairing capability implementations and inspect instructions
+        shell: bash
+        env:
+          LABEL: ${{ matrix.label }}
+          DEVICE: ${{ matrix.firmware }}
+          VERSION: ${{ matrix.version }}
+          BUILD: ${{ matrix.build }}
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/homekit-${LABEL}-capability-report.txt"
+          {
+            printf 'Firmware: %s %s (%s)\n\n' "$DEVICE" "$VERSION" "$BUILD"
+            printf '=== HomeKit pairing capability selectors ===\n'
+            for needle in \
+              'supportedPairingCapabilities' \
+              'canPairGivenCapabilities:' \
+              'requiredPairingCapabilities' \
+              'minimumRequiredPairingSoftwareVersion'; do
+              printf '\n--- %s ---\n' "$needle"
+              ipsw dyld symaddr --image HomeKitDaemon "$DSC" "_objc_msgSend\$${needle}" || true
+            done
+            printf '\n=== Relevant known ObjC method implementations ===\n'
+            for symbol in \
+              '-[HMDUnassociatedAppleMediaAccessory canPairGivenCapabilities:]' \
+              '-[HMDUnassociatedAppleMediaAccessory supportedPairingCapabilities]' \
+              '-[HMDUnassociatedAppleMediaAccessory requiredPairingCapabilities]' \
+              '-[HMDUnassociatedAppleMediaAccessory minimumRequiredPairingSoftwareVersion]' \
+              '-[HMDUnassociatedAccessory canPairGivenCapabilities:]' \
+              '-[HMDDeviceSetupClientSession canPairGivenCapabilities:]'; do
+              printf '\n--- %s ---\n' "$symbol"
+              ipsw dyld symaddr --image HomeKitDaemon "$DSC" -- "$symbol" || true
+              ipsw dyld disass "$DSC" --image HomeKitDaemon \
+                --symbol "$symbol" --count 120 || true
+            done
+            printf '\n=== HomeKit capability and compatibility strings ===\n'
+            for needle in \
+              'Our pairing capabilities' \
+              'doesn.t have all required capabilities' \
+              'canPairGivenCapabilities' \
+              'pairing capabilities'; do
+              ipsw dyld str "$DSC" --pattern "$needle" || true
+            done
+          } > "$report" 2>&1
+          echo "REPORT=$report" >> "$GITHUB_ENV"
+
+      - name: Extract Objective-C interface declarations for context
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/homekit-headers"
+          # Analyze the cache itself, not copied system dylibs. No Apple binaries are published.
+          ipsw class-dump "$DSC" HomeKitDaemon --headers \
+            -o "$RUNNER_TEMP/homekit-headers" >> "$REPORT" 2>&1 || true
+          {
+            printf '\n=== Method declarations related to pairing capabilities ===\n'
+            rg -n -i -C 3 \
+              'canPairGivenCapabilities|supportedPairingCapabilities|minimumRequiredPairingSoftwareVersion|requiredPairingCapabilities' \
+              "$RUNNER_TEMP/homekit-headers" | head -n 220 || true
+            printf '\n=== Relevant classes ===\n'
+            find "$RUNNER_TEMP/homekit-headers" -type f \
+              \( -iname '*UnassociatedAppleMediaAccessory*' -o -iname '*DeviceSetupClientSession*' \) \
+              -print | head -n 25
+          } >> "$REPORT"
+
+      - name: Upload text-only interoperability analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: homekit-capabilities-${{ matrix.label }}
+          path: ${{ runner.temp }}/homekit-*capability-report.txt
+          if-no-files-found: warn
+          retention-days: 14
