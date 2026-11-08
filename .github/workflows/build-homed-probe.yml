@@ -1,0 +1,45 @@
+name: Build isolated homed version probe
+
+on:
+  push:
+    paths:
+      - experiments/homed-version-probe/**
+      - .github/workflows/build-homed-probe.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Theos dependencies
+        run: brew install ldid dpkg
+
+      - name: Install Theos and iOS 16.5 SDK
+        run: |
+          git clone --recursive https://github.com/theos/theos.git "$GITHUB_WORKSPACE/theos"
+          mkdir -p "$GITHUB_WORKSPACE/theos/sdks"
+          curl --fail --location --retry 3 \
+            https://github.com/theos/sdks/releases/latest/download/iPhoneOS16.5.sdk.tar.xz \
+            --output "$RUNNER_TEMP/iPhoneOS16.5.sdk.tar.xz"
+          tar -xf "$RUNNER_TEMP/iPhoneOS16.5.sdk.tar.xz" \
+            -C "$GITHUB_WORKSPACE/theos/sdks"
+
+      - name: Compile opt-in ARM64e rootless package
+        working-directory: experiments/homed-version-probe
+        env:
+          THEOS: ${{ github.workspace }}/theos
+        run: make package FINALPACKAGE=1
+
+      - name: Upload probe DEB without publishing to Sileo
+        uses: actions/upload-artifact@v4
+        with:
+          name: HomePodBridge-homed-probe-deb
+          path: experiments/homed-version-probe/packages/*.deb
+          if-no-files-found: error
+          retention-days: 14
