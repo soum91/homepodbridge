@@ -1,26 +1,40 @@
 # HomePod mini 2 setup investigation (2026-11-07)
 
-## Verified evidence
+## Confirmed second gate: HomeKit daemon compatibility check
 
-- Device: `AudioAccessory11,1`, reported as type 11 by iOS 16.1.1. The HomePod reports software version `27.0` in the previously captured pre-authorization response.
-- The uploaded iOS 16.1.1 `HDSViewService` executable has SHA-256 `0ef19ac608379b89fc0eb93f190c5b4253ede0b88f44bf72e8f7ee0206e5eb91`.
-- Earlier logs from before 0.1.4 show a successful `B238Setup` start acknowledgment and a `PreAuth response` from the HomePod, **even though** the old UI then reports the unknown-device update gate. BLE discovery and pre-authorization therefore functioned before the gate was bypassed.
-- Version 0.1.4 repaired incorrect dyld image selection. The actual phone visibly advanced to **Setting Up**; the subsequent screenshot shows `kHomeKitSyncTimeoutErr (HomeKitSetupWaitDeviceSetup)` and `NSOSStatusErrorDomain` code `-71163`.
-- The 17:02 setup timeout was observed separately from the 16:31 `systemhook.dylib` signature mismatch on 0.1.3. Do not treat the old mismatch as a 0.1.4 failure.
-- Static strings in the iOS 16.1.1 setup executable already include `errorHomeKitSyncTimeout` and `HomeKitSetupStart`; the timeout is not necessarily itself a new iOS 27-only error type.
+The full UTF-16 syslog captured for the 21:29 setup attempt proves that the 0.1.4 HDSViewService update-gate bypass reaches the actual HomeKit daemon protocol exchange:
 
-## What remains unknown
+- 21:29:53.125: HDSViewService opens an `HMDeviceSetupSession`.
+- 21:29:53.162: HDSViewService sends `HMDeviceSetupRequestMessage` (1397 bytes).
+- 21:29:53.623: HDSViewService receives `HMDeviceSetupResponseMessage` (2564 bytes), passes it to `homed`.
+- 21:29:53.628: `homed` receives `HMDUnassociatedAppleMediaAccessory` and reports accessory HomeKit version `14.0` (this is not the HomePodOS version).
+- 21:29:53.628: `homed` logs **`Our pairing capabilities: 0x3, minimum software version satisfied: NO`**, followed by **`Cannot pair as current device doesn't have all required capabilities.`**
+- 21:29:53.628: `homed` rejects session exchange with `HMErrorDomain Code=48`. HDSViewService receives the same error.
+- 21:34:55: after 300 seconds, HDSViewService reports `kHomeKitSyncTimeoutErr` / `NSOSStatusErrorDomain Code=-71163` at `HomeKitSetupWaitDeviceSetup`.
 
-The timeout identifies **where** the client stopped waiting; it does not identify **why** the HomePod failed to complete device configuration. Possibilities include a Wi-Fi/HomeKit service issue, a newer protocol request, a capability that iOS 16.1.1 omits, or a peer-side error. None is yet proven.
+**Conclusion:** The timeout is downstream of a proven `homed` compatibility rejection. Device discovery, pre-authorization, setup user interface, and actual HomeKit data exchange all progressed. This does NOT imply provisioning completed. We need to identify how `homed` computes the minimum software predicate, the current pairing-capability bitmask, and the required capability mask. Blindly forcing a success return may leave the accessory unconfigured.
 
-`HDSViewService` imports the private `HomeDeviceSetup` framework, while the timeout log originates in `CoreUtils` through that setup path. The uploaded `HDSViewService.app` binary does not contain all the implementation needed to resolve that cause by static disassembly alone.
+## Existing HDSViewService patch
 
-## Next experiment (no OS or firmware update)
+- Device `AudioAccessory11,1` identifies as type 11; it reported HomePodOS 27.0 in an earlier preauthorization response.
+- The matching iOS 16.1.1 `HDSViewService` binary SHA-256 is `0ef19ac608379b89fc0eb93f190c5b4253ede0b88f44bf72e8f7ee0206e5eb91`.
+- On that exact binary, replacing the conditional branch at image offset `0x82318` with an ARM64 NOP bypasses the unknown-device update screen.
+- Version 0.1.4 locates the true `MH_EXECUTE` image despite ElleKit/systemhook image ordering; it must remain unchanged as our known working baseline.
 
-1. Keep the 0.1.4 package installed. No new in-memory patch is justified by the timeout alone.
-2. On Windows, run `scripts/capture-homepod.ps1` **before** beginning a fresh setup attempt with the phone close to the HomePod.
-3. Retain HDSViewService/CoreUtils progress messages from the beginning of the attempt, not only the final error. The helper writes to the current directory to avoid redirected Desktop paths.
-4. Run `python scripts/summarize-homepod-log.py FILE.txt` locally for a sanitized phase summary. Review the source log before sharing because setup logs can include identifiers and account metadata.
-5. Correlate the last successful `B238Setup`, Wi-Fi handoff and `HomeKitSetup` messages against the `HomeKitSetupWaitDeviceSetup` timeout. Only then choose a guarded tweak change.
+## Required evidence before a homed patch
 
-**Safety:** Do not suppress setup errors, forge a success acknowledgment, modify the system executable, reset the HomePod, or update the iPhone merely to make the UI finish. A completed setup must correspond to a genuinely configured HomePod.
+Obtain the **matching iOS 16.1.1 `homed` executable** from the jailbroken iPhone, or a matching extracted IPSW/firmware filesystem, for offline ARM64e disassembly. Do not use a daemon from a different iOS build. On the phone, first check (read-only):
+
+```sh
+ls -l /usr/libexec/homed
+file /usr/libexec/homed
+shasum -a 256 /usr/libexec/homed
+```
+
+If the path differs, locate the daemon through launchd service configuration or `find /usr /System/Library -name homed -type f 2>/dev/null` without editing the system volume. Transfer a **copy** of the file through the user's usual SSH/SFTP channel. Preserve the original. Some Apple executables are stored with an encrypted or stripped on-disk image; if the copied file is not disassemblable, obtain the exact-build decrypted image through a diagnostic dump or a matching firmware image instead.
+
+Analyze the strings and cross-references for `Our pairing capabilities`, `minimum software version satisfied`, and `Cannot pair as current device`; identify the concrete branch and inputs. Only then design a signature-checked, fail-closed, in-memory tweak for `homed`, isolated from the working HDSViewService patch. Check the actual required features, not merely the numeric software gate, and verify that the HomePod completes pairing and is controllable. Never suppress `HMErrorDomain Code=48` or fabricate a completion notification.
+
+## Safety and privacy
+
+This log contains private HomeKit, device and account identifiers. Keep the full log private; share only the redacted lines above. No need for a new device log yet. Do not update iOS, reset the HomePod, modify an on-disk Apple executable, or abandon the jailbreak. This project remains experimental and complete pairing is **not** yet demonstrated.
