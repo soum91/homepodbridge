@@ -1,17 +1,17 @@
 Package: com.soum91.homepodbridge.homedprobe
-Name: HomePodBridge homed Version Probe
-Description: Opt-in experimental iOS 16.1.1 HomeKit minimum-version predicate test; preserves the separate capability check.
+Name: HomePodBridge homed Capability Bridge (Experimental)
+Description: Opt-in iOS 16.1.1 HomePod pairing experiment: preserve the proven minimum-version probe and selectively test the Apple-media capability gate. Pairing is not guaranteed.
 Maintainer: Soumen Saha Jyoti
 Author: Soumen Saha Jyoti
 Section: Tweaks
 Depends: firmware (>= 16.1), ellekit, com.soum91.homepodbridge (>= 0.1.4)
 Architecture: iphoneos-arm64
-Version: 0.1.5~probe1
-Installed-Size: 72
-Filename: ./debs/com.soum91.homepodbridge.homedprobe_0.1.5~probe1_iphoneos-arm64.deb
-Size: 3866
-MD5sum: 2bc2584f62cdb534c498a2341d9348c5
-SHA256: ced17cbdf8b025d50679478b2fbe1a5d7cd61cd4b7d3da585ecdcfbc40cf97ba
+Version: 0.1.6
+Installed-Size: 92
+Filename: ./debs/com.soum91.homepodbridge.homedprobe_0.1.6_iphoneos-arm64.deb
+Size: 5176
+MD5sum: d92b46345c07ca7db52f84a2667c8d4c
+SHA256: 2d77da2103a5d1e7dac63be22c1a6c3429712dbfb05d3f5c930fb8f6ce9ef5a2
 
 Package: com.soum91.homepodbridge
 Name: HomePod Bridge (Experimental)
@@ -24,7 +24,7 @@ Architecture: iphoneos-arm64
 Version: 0.1.4
 Installed-Size: 72
 Filename: ./debs/com.soum91.homepodbridge_0.1.4_iphoneos-arm64.deb
-Size: 4136
-MD5sum: 7a0f953741e406a5373442c9034595f4
-SHA256: 4a1622fa86ded754df7c8bf3bfb41eea814f137858819b572273569b3dd7da9f
+Size: 4132
+MD5sum: 55a282de16a10bf1df2992bc3d8efdfa
+SHA256: acfeb6abf246621ce3588a35158d8638e2376e04eb1954e7697e6791396140a2
 
