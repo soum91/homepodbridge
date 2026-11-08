@@ -78,3 +78,16 @@ The third diagnostic artifact disassembled the predicate in `-[HMDDeviceSetupCli
 - Legacy `HomeKitDaemonLegacy`: `isAtLeastVersion:` at `0x1c433d614`; `canPairGivenCapabilities:` at `0x1c433d6d8`; AND at `0x1c433d6dc`; `tbz w8,#0` at `0x1c433d6e0` branches to the rejection.
 
 **Important:** Logs prove that the minimum version check is false, but do not prove whether `canPairGivenCapabilities:` returns true or false. Bypassing both by NOP-ing `tbz` would discard a potentially real feature requirement. An isolated **version-only** proof of concept is under `experiments/homed-version-probe/`, separate from HomePodBridge 0.1.4. It replaces only the `isAtLeastVersion:` call result with true after build and signature verification, preserves the capabilities result, and has not been tested on-device.
+
+## Probe1 on-device result and next interoperability study (2026-11-08)
+
+The owner installed the separate `com.soum91.homepodbridge.homedprobe` package and attempted pairing again. The new captured `homed` log reported:
+
+```
+Our pairing capabilities: 0x3, minimum software version satisfied: YES
+Cannot pair as current device doesn't have all required capabilities.
+```
+
+Earlier logs for the same accessory said `minimum software version satisfied: NO`. This strongly supports that the **version-only in-memory patch is working** and confirms that the *independent* `canPairGivenCapabilities:` predicate rejects mask `0x3`. The lack of an `NSLog` constructor line in a filtered desktop stream does not disprove patch activation. No successful pairing has been observed.
+
+Before attempting any capability bypass, identify the actual `canPairGivenCapabilities:` implementation, the required mask and any linked protocol features. `.github/workflows/compare-homekit-capabilities.yml` obtains **text-only** Objective-C declarations and disassembly from the exact iOS 16.1.1 (20B101) and iOS 27.2 (24B119) Apple firmware caches. It does not deploy or replace newer system libraries. A dyld-cache binary copied from iOS 27 to iOS 16 would have incompatible dependencies, runtime assumptions, pointer authentication and signing expectations; a scoped compatibility shim is a safer engineering direction. If essential protocol features are absent in iOS 16, merely returning YES from the predicate would not be a functional implementation.
