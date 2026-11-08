@@ -1,6 +1,6 @@
 # HomePod Bridge (experimental)
 
-An experimental tweak for Soumen's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine rootless and ElleKit. Version 0.1.4 fixes the ElleKit Mach-O image-selection bug and has been observed advancing HomePod mini 2 (device type 11) past the update-required screen to **Setting Up**. Complete pairing is **not** working yet: the next observed failure is `kHomeKitSyncTimeoutErr (-71163)` at `HomeKitSetupWaitDeviceSetup`.
+An experimental tweak for Soumen's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine rootless and ElleKit. Version 0.1.4 fixes the ElleKit Mach-O image-selection bug and has been observed advancing HomePod mini 2 (device type 11) past the update-required screen to **Setting Up**. Complete pairing is **not** working yet. The full setup log reveals that `homed` rejects a real HomeKit setup response with `HMErrorDomain Code=48`: `Our pairing capabilities: 0x3, minimum software version satisfied: NO` and `Cannot pair as current device doesn't have all required capabilities.` The later `kHomeKitSyncTimeoutErr (-71163)` is downstream of this rejection.
 
 ## What the reverse engineering established
 
@@ -9,7 +9,7 @@ An experimental tweak for Soumen's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine
 - The rejection is the `b.ne` instruction at image-relative offset `0x82318`. On the exact file supplied by the user, its 4 bytes are `61 00 00 54`.
 - Replacing that conditional branch with an ARM64 NOP (`1f 20 03 d5`) allows execution to fall through to the existing success return. The tweak changes code in **HDSViewService memory only**, not the executable stored on disk.
 
-**Observed on the actual devices:** version 0.1.0 bypassed the upgrade screen but immediately produced `Setup Failed (-6732)`. Version 0.1.1 regressed to the update-required screen. Version 0.1.2 removed the diagnostic hooks; version 0.1.3 proved the active Mach-O image was incorrectly assumed to be index zero. Version 0.1.4 selects the actual `HDSViewService` executable and reached **Setting Up**, followed by a HomeKit device-setup synchronization timeout. **Pairing is still not verified.** Subsequent stages may have additional iOS version or feature requirements. Installation carries normal experimental jailbreak tweak risks, including process crashes. Use only on the matching iOS build and remove the package if the setup UI behaves unexpectedly.
+**Observed on the actual devices:** version 0.1.0 bypassed the upgrade screen but immediately produced `Setup Failed (-6732)`. Version 0.1.1 regressed to the update-required screen. Version 0.1.2 removed the diagnostic hooks; version 0.1.3 proved the active Mach-O image was incorrectly assumed to be index zero. Version 0.1.4 selects the actual `HDSViewService` executable and reached **Setting Up**, followed by a HomeKit device-setup synchronization timeout. **Pairing is still not verified.** The next proven gate is inside the `homed` daemon, not the HDSViewService update check. A matching iOS 16.1.1 `homed` executable is required before developing a signature-checked, fail-closed compatibility patch. See `INVESTIGATION.md` for the precise event trace. Installation carries normal experimental jailbreak tweak risks, including process crashes. Use only on the matching iOS build and remove the package if the setup UI behaves unexpectedly.
 
 ## Build and test
 
