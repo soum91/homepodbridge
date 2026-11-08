@@ -1,0 +1,9 @@
+Package: com.soum91.homepodbridge.homedprobe
+Name: HomePodBridge homed Version Probe
+Version: 0.1.5~probe1
+Architecture: iphoneos-arm64
+Description: Opt-in experimental iOS 16.1.1 HomeKit minimum-version predicate test; preserves the separate capability check.
+Maintainer: Soumen Saha Jyoti
+Author: Soumen Saha Jyoti
+Section: Tweaks
+Depends: firmware (>= 16.1), ellekit, com.soum91.homepodbridge (>= 0.1.4)
