@@ -91,3 +91,18 @@ Cannot pair as current device doesn't have all required capabilities.
 Earlier logs for the same accessory said `minimum software version satisfied: NO`. This strongly supports that the **version-only in-memory patch is working** and confirms that the *independent* `canPairGivenCapabilities:` predicate rejects mask `0x3`. The lack of an `NSLog` constructor line in a filtered desktop stream does not disprove patch activation. No successful pairing has been observed.
 
 Before attempting any capability bypass, identify the actual `canPairGivenCapabilities:` implementation, the required mask and any linked protocol features. `.github/workflows/compare-homekit-capabilities.yml` obtains **text-only** Objective-C declarations and disassembly from the exact iOS 16.1.1 (20B101) and iOS 27.2 (24B119) Apple firmware caches. It does not deploy or replace newer system libraries. A dyld-cache binary copied from iOS 27 to iOS 16 would have incompatible dependencies, runtime assumptions, pointer authentication and signing expectations; a scoped compatibility shim is a safer engineering direction. If essential protocol features are absent in iOS 16, merely returning YES from the predicate would not be a functional implementation.
+
+## Exact capability implementation and opt-in bridge 0.1.6 (2026-11-08)
+
+The corrected exact-iOS-16.1.1 dyld-cache analysis resolved `-[HMDUnassociatedAppleMediaAccessory canPairGivenCapabilities:]` at `HomeKitDaemon` unslid address `0x1fdc06138` and the `requiredPairingCapabilities` accessor at `0x1fdc05b08`. The method:
+
+1. Reads the unassociated Apple media accessory's `requiredPairingCapabilities` **object** (not a plain integer mask).
+2. Constructs an `HMDCapabilityFlags` object from the calling iPhone's `supportedPairingCapabilities` integer mask.
+3. Calls `[offeredFlags hasCapabilities:requiredFlags]`, returning its boolean result.
+4. Returns true if the required-capability object was absent. Therefore the observed false result proves a nonempty requirement object and an insufficient offered flag set.
+
+The `0.1.6` opt-in `homed` capability bridge calls Apple's original `canPairGivenCapabilities:` and then overrides only a false result for Apple-media accessory receivers when the offered capability value equals the observed `0x3`. It is installed only after the exact-build, signature-guarded minimum-version patch succeeds. The separate package `com.soum91.homepodbridge.homedprobe` does not alter the stable `0.1.4` `HDSViewService` tweak. A GitHub Actions ARM64e package build succeeded and the live Sileo index lists the 0.1.6 package.
+
+**ABI detail:** `requiredPairingCapabilities` returns an Objective-C `HMDCapabilityFlags` object on this firmware. The 0.1.6 runtime diagnostic avoids treating that return as an integer; `required=0x0 known=0` in its log is **not** evidence the HomePod has no required capabilities. The meaningful fields are the offered mask, original predicate result, receiver class and override status.
+
+This experiment is not proof of protocol compatibility. A full successful pair, continued HomeKit operation and HomePod responsiveness all remain unverified. The iOS 27.2 counterpart is being analyzed separately to determine whether a portable shim beyond the gates could be justified.
