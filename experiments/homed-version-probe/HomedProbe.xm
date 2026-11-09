@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import <dispatch/dispatch.h>
 #import <mach-o/dyld.h>
 #import <mach-o/loader.h>
 #import <objc/runtime.h>
@@ -15,6 +16,7 @@ extern "C" void MSHookMessageEx(Class cls, SEL selector, IMP hook, IMP *original
 
 static BOOL (*sOriginalCanPair)(id, SEL, unsigned long long) = nullptr;
 static BOOL sCapabilityHookInstalled = NO;
+static dispatch_once_t sCapabilityScheduleOnce;
 
 // Only the optional experimental homed package enables this adapter. It is
 // restricted to unassociated Apple media accessories with the observed
@@ -52,28 +54,41 @@ static BOOL HPBExperimentalCanPair(id accessory, SEL selector,
     // pairing or another accessory class is involved, do not alter its answer.
     BOOL override = targeted && !original;
     os_log_error(OS_LOG_DEFAULT,
-                 "[HomePodBridge homed-probe 0.1.6] capability gate: offered=0x%{public}llx required=0x%{public}llx known=%{public}d original=%{public}d override=%{public}d class=%{public}s",
+                 "[HomePodBridge homed-probe 0.1.7] capability gate: offered=0x%{public}llx required=0x%{public}llx known=%{public}d original=%{public}d override=%{public}d class=%{public}s",
                  availableCapabilities, (unsigned long long)required,
                  hasRequiredMask, original, override,
                  class_getName(object_getClass(accessory)));
     return original || override;
 }
 
-static void HPBInstallCapabilityHook(void) {
+// homed need not drain the main dispatch queue while its device-setup session
+// is active. Use a daemon-independent queue and retry briefly if Objective-C
+// has not registered HomeKitDaemon's classes when dyld reports the image.
+static void HPBInstallCapabilityHook(unsigned attempt) {
     if (sCapabilityHookInstalled) return;
     Class cls = objc_getClass("HMDUnassociatedAppleMediaAccessory");
     SEL selector = sel_registerName("canPairGivenCapabilities:");
     if (!cls || !class_getInstanceMethod(cls, selector)) {
         os_log_error(OS_LOG_DEFAULT,
-                     "[HomePodBridge homed-probe 0.1.6] capability hook unavailable; leaving Apple predicate intact");
+                     "[HomePodBridge homed-probe 0.1.7] capability hook not ready; attempt=%{public}u class=%{public}d",
+                     attempt + 1, cls != Nil);
+        if (attempt < 11) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 250 * NSEC_PER_MSEC),
+                           dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+                HPBInstallCapabilityHook(attempt + 1);
+            });
+        } else {
+            os_log_error(OS_LOG_DEFAULT,
+                         "[HomePodBridge homed-probe 0.1.7] capability hook unavailable after retries; Apple predicate unchanged");
+        }
         return;
     }
     MSHookMessageEx(cls, selector, (IMP)HPBExperimentalCanPair,
                     (IMP *)&sOriginalCanPair);
     sCapabilityHookInstalled = sOriginalCanPair != nullptr;
     os_log_error(OS_LOG_DEFAULT,
-                 "[HomePodBridge homed-probe 0.1.6] Apple-media capability hook installed=%{public}d",
-                 sCapabilityHookInstalled);
+                 "[HomePodBridge homed-probe 0.1.7] Apple-media capability hook installed=%{public}d after_attempt=%{public}u",
+                 sCapabilityHookInstalled, attempt + 1);
 }
 
 struct HPBVersionProbeTarget {
@@ -160,11 +175,14 @@ static void HPBCheckImage(const struct mach_header *header, intptr_t slide) {
         uint8_t *instruction = reinterpret_cast<uint8_t *>(actualAddress + target.branchInstructionOffset);
         MSHookMemory(instruction, kMoveTrueToW0, sizeof(kMoveTrueToW0));
         if (memcmp(instruction, kMoveTrueToW0, sizeof(kMoveTrueToW0)) == 0) {
-            NSLog(@"[HomePodBridge homed-probe 0.1.6] Minimum-version predicate patched for %s; scheduling separate media-accessory capability probe", name);
-            // Callback is invoked under dyld's image-load machinery; defer
-            // Objective-C method swizzling until the main queue is available.
-            dispatch_async(dispatch_get_main_queue(), ^{
-                HPBInstallCapabilityHook();
+            os_log_error(OS_LOG_DEFAULT,
+                         "[HomePodBridge homed-probe 0.1.7] minimum-version patch verified; image=%{public}s; scheduling capability hook",
+                         name);
+            // Do not call MSHookMessageEx under dyld's image-load lock.
+            dispatch_once(&sCapabilityScheduleOnce, ^{
+                dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+                    HPBInstallCapabilityHook(0);
+                });
             });
         } else {
             NSLog(@"[HomePodBridge homed-probe] FAILED to patch %s", name);
@@ -182,7 +200,7 @@ __attribute__((constructor)) static void HPBInitializeProbe(void) {
             return;
         }
         os_log_error(OS_LOG_DEFAULT,
-                     "[HomePodBridge homed-probe 0.1.6] Waiting for matching HomeKit framework image");
+                     "[HomePodBridge homed-probe 0.1.7] loaded in homed; waiting for matching HomeKit framework image");
         // dyld invokes this callback for already loaded images and future images.
         _dyld_register_func_for_add_image(HPBCheckImage);
     }
