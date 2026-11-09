@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.7 (optional homed capability-hook scheduling diagnostic) - 2026-11-09
+
+- Moved experimental `homed` capability-hook installation from the daemon's main dispatch queue to a utility queue. The setup callback may not drain the main queue promptly, preventing a reliable indication that the hook actually installed.
+- Added up to 12 bounded attempts over approximately three seconds if HomeKit's Objective-C class or selector has not been registered yet; never hook unrelated classes.
+- Emit explicit unified-log milestones for library injection, exact-build minimum-version patch verification, capability-hook installation status, and capability-predicate evaluations. The Apple pairing bypass and its restrictions are unchanged from 0.1.6.
+- This is a diagnostic and scheduling change only. Physical-device activation and successful HomePod pairing are not yet verified.
+- Source baseline: https://github.com/soum91/homepodbridge/commit/1966b939b41715ce14462ef038ff2dc5d84b482c . Current comparison: https://github.com/soum91/homepodbridge/compare/1966b939b41715ce14462ef038ff2dc5d84b482c...main .
+
 ## 0.1.6 (optional homed capability bridge) - 2026-11-08
 
 - Confirmed from a real iPhone 13 Pro Max `homed` log that the separate 0.1.5 minimum-version probe succeeds: `minimum software version satisfied: YES`. The HomePod pairing attempt nevertheless fails Apple's independent capability requirement with an offered mask of `0x3` and `HMErrorDomain Code=48`.
