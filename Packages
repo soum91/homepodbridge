@@ -6,12 +6,12 @@ Author: Soumen Saha Jyoti
 Section: Tweaks
 Depends: firmware (>= 16.1), ellekit, com.soum91.homepodbridge (>= 0.1.4)
 Architecture: iphoneos-arm64
-Version: 0.1.6
+Version: 0.1.7
 Installed-Size: 92
-Filename: ./debs/com.soum91.homepodbridge.homedprobe_0.1.6_iphoneos-arm64.deb
-Size: 5176
-MD5sum: d92b46345c07ca7db52f84a2667c8d4c
-SHA256: 2d77da2103a5d1e7dac63be22c1a6c3429712dbfb05d3f5c930fb8f6ce9ef5a2
+Filename: ./debs/com.soum91.homepodbridge.homedprobe_0.1.7_iphoneos-arm64.deb
+Size: 5644
+MD5sum: 71ebe3204c0f683e04b6d1d3a67fa961
+SHA256: a92cbf2522fb5ad56eac4a8fec2c6e20c2bb862ef65d36f64f05573029c26cfc
 
 Package: com.soum91.homepodbridge
 Name: HomePod Bridge (Experimental)
@@ -24,7 +24,7 @@ Architecture: iphoneos-arm64
 Version: 0.1.4
 Installed-Size: 72
 Filename: ./debs/com.soum91.homepodbridge_0.1.4_iphoneos-arm64.deb
-Size: 4132
-MD5sum: 55a282de16a10bf1df2992bc3d8efdfa
-SHA256: acfeb6abf246621ce3588a35158d8638e2376e04eb1954e7697e6791396140a2
+Size: 4136
+MD5sum: ea04a96e444d77e3cea84e609b4cb35a
+SHA256: 1aa556adc1797b4c49bdcfc02612ccb6f123fbdfe8252fad025b256411888968
 
