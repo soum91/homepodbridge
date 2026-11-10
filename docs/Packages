@@ -1,28 +1,30 @@
 Package: com.soum91.homepodbridge.homedprobe
 Name: HomePodBridge homed Capability Bridge (Experimental)
-Version: 0.1.8
-Architecture: iphoneos-arm64
 Description: Opt-in iOS 16.1.1 HomePod pairing experiment: preserve the proven minimum-version probe and selectively test the Apple-media capability gate. Pairing is not guaranteed.
 Maintainer: soum91
 Author: soum91
 Section: Tweaks
 Depends: firmware (>= 16.1), ellekit, com.soum91.homepodbridge (>= 0.1.4)
+Architecture: iphoneos-arm64
+Version: 0.1.8
+Installed-Size: 92
 Filename: ./debs/com.soum91.homepodbridge.homedprobe_0.1.8_iphoneos-arm64.deb
-Size: 5736
-MD5sum: 9ad6aad391ce02f1b7bc7baff7ec2b26
-SHA256: 57ce6043eaa618af0367293ec4b605b1c91accfce0945dbee8cb39cc2df79adf
+Size: 5636
+MD5sum: 596c947744d3242b0cf180fdc922b8a9
+SHA256: 23f19b1cd921a5dedc5b747e7bb3a252225ed7d08d6afa4d77e71246b1179f38
 
 Package: com.soum91.homepodbridge
 Name: HomePod Bridge (Experimental)
-Version: 0.1.5
-Architecture: iphoneos-arm64
 Description: Targets the actual HDSViewService Mach-O executable instead of the ElleKit systemhook library, retaining the exact instruction guard and in-memory patch.
 Maintainer: soum91
 Author: soum91
 Section: Tweaks
 Depends: firmware (>= 16.1), ellekit
+Architecture: iphoneos-arm64
+Version: 0.1.5
+Installed-Size: 72
 Filename: ./debs/com.soum91.homepodbridge_0.1.5_iphoneos-arm64.deb
-Size: 4220
-MD5sum: 1d13b0a11c5af8d64049f88bc9989e9f
-SHA256: cf59c04c6d340ef396fcb1d4ae483cde2032e251f4d13f8ae74ba332bb721c1c
+Size: 4126
+MD5sum: fb9190ac72381d20bad7a09d636858b7
+SHA256: d2263862ef3e1d045293d4c2a657202d1f2fe8f9c62272d17419973797d1cbea
 
