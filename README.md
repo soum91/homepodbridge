@@ -1,6 +1,6 @@
 # HomePod Bridge (experimental)
 
-An experimental tweak for Soumen's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine rootless and ElleKit. Version 0.1.4 fixes the ElleKit Mach-O image-selection bug and has been observed advancing HomePod mini 2 (device type 11) past the update-required screen to **Setting Up**. Complete pairing is **not** working yet. The full setup log reveals that `homed` rejects a real HomeKit setup response with `HMErrorDomain Code=48`: `Our pairing capabilities: 0x3, minimum software version satisfied: NO` and `Cannot pair as current device doesn't have all required capabilities.` The later `kHomeKitSyncTimeoutErr (-71163)` is downstream of this rejection.
+An experimental tweak for the owner's iPhone 13 Pro Max on iOS 16.1.1 with Dopamine rootless and ElleKit. Version 0.1.4 fixes the ElleKit Mach-O image-selection bug and has been observed advancing HomePod mini 2 (device type 11) past the update-required screen to **Setting Up**. Complete pairing is **not** working yet. The full setup log reveals that `homed` rejects a real HomeKit setup response with `HMErrorDomain Code=48`: `Our pairing capabilities: 0x3, minimum software version satisfied: NO` and `Cannot pair as current device doesn't have all required capabilities.` The later `kHomeKitSyncTimeoutErr (-71163)` is downstream of this rejection.
 
 ## What the reverse engineering established
 
