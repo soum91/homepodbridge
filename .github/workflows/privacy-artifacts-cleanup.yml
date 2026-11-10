@@ -1,0 +1,25 @@
+name: Remove superseded package build artifacts
+on:
+  push:
+    paths:
+      - '.github/workflows/privacy-artifacts-cleanup.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write
+jobs:
+  remove-superseded-artifacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Remove verified pre-correction package artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          for artifact_id in 13649853777 13649424385 13650356778 13650262252 13649842429 13604934249 13605495412 13605216276 13605355236 13604291114 13602979280 13603438415 13603291994 13601924021 13602038945 13601928177 13601289113 13591747278 13591049862 13589288383 13589836958 13586499465 13587030755 13586806528 13586062999; do
+            if gh api "/repos/${GH_REPO}/actions/artifacts/${artifact_id}" >/dev/null 2>&1; then
+              gh api -X DELETE "/repos/${GH_REPO}/actions/artifacts/${artifact_id}"
+            fi
+          done
