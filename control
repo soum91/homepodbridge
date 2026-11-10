@@ -1,9 +1,9 @@
 Package: com.soum91.homepodbridge
 Name: HomePod Bridge (Experimental)
-Version: 0.1.4
+Version: 0.1.5
 Architecture: iphoneos-arm64
 Description: Targets the actual HDSViewService Mach-O executable instead of the ElleKit systemhook library, retaining the exact instruction guard and in-memory patch.
-Maintainer: Soumen Saha Jyoti
-Author: Soumen Saha Jyoti
+Maintainer: soum91
+Author: soum91
 Section: Tweaks
 Depends: firmware (>= 16.1), ellekit

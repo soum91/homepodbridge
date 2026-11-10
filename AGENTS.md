@@ -1,4 +1,9 @@
 # HomePodBridge development conventions
++
+
+## Public attribution and owner privacy
+
+Use `soum91` as the author, maintainer, developer, and publisher in all first-party metadata. Do not publish the owner's legal name, private email, or other personal identifiers in source, licenses, Sileo/FlareStore feeds, release assets, binary packages, generated docs, logs, or commits. Audit generated artifacts before publishing. Preserve legitimate third-party copyright notices. Existing bundle identifiers, app groups, and entitlements must not be silently changed, because doing so can break upgrades and stored data.
 
 - Target: Dopamine rootless, iPhone 13 Pro Max, iOS 16.1.1, ARM64e system process `com.apple.HDSViewService`.
 - Never modify Apple's original HDSViewService executable on disk. Inject a tweak and use a reversible memory patch only.

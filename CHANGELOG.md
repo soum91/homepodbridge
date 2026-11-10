@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.8 homed probe / 0.1.5 UI tweak - 2026-11-10
+
+- Privacy-only packaging update: replace the owner’s legal-name attribution with `soum91` in source package controls, published Sileo metadata, and available historical `.deb` files.
+- Rebuild both current packages under incremented versions so installed package metadata can be refreshed through Sileo. No tweak logic, HomeKit compatibility, or pairing behavior has changed; device verification remains pending.
+
 ## 0.1.7 (optional homed capability-hook scheduling diagnostic) - 2026-11-09
 
 - Moved experimental `homed` capability-hook installation from the daemon's main dispatch queue to a utility queue. The setup callback may not drain the main queue promptly, preventing a reliable indication that the hook actually installed.
